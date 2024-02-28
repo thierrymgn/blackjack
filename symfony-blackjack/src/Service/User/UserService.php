@@ -24,9 +24,20 @@ class UserService
         $this->formFactory = $formFactory;
     }
 
-    public function getUserList(): array
+    public function getPaginatedUserList(int $limit = 12, int $page = 0): array
     {
-        return $this->entityManager->getRepository(User::class)->findAll();
+        $users = $this->entityManager->getRepository(User::class)->getPaginatedUsers($limit, $page);
+        $totalUsers = $this->entityManager->getRepository(User::class)->countUsers();
+
+        $response = [
+            'limit' => $limit,
+            'page' => $page+1,
+            'content' => $users,
+            'total' => $totalUsers
+            
+        ];
+
+        return $response;
     }
 
     public function getUserByUuid(string $uuid): ?User

@@ -19,11 +19,13 @@ class UserController extends AbstractController
     }
 
     #[Route('/user', name: 'get_user_list', methods: ['GET'])]
-    public function getUserList(): JsonResponse
+    public function getUserList(Request $request): JsonResponse
     {
         //$this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $limit = $request->query->get('limit', 12);
+        $page = $request->query->get('page', 0);
 
-        $users = $this->userService->getUserList();
+        $users = $this->userService->getPaginatedUserList($limit, $page);
         return $this->json($users);
     }
 
