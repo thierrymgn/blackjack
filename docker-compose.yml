@@ -15,6 +15,7 @@ services:
       - '8888:8000'
     volumes:
       - ./symfony-blackjack/:/home/symfony-blackjack:cached
+
   svelte-blackjack:
     image: node:20
     container_name: svelte-blackjack
