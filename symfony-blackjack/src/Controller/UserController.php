@@ -39,19 +39,14 @@ class UserController extends AbstractController
     }
 
     #[Route('/user/profile', name: 'get_current_user_infos', methods: ['GET'])]
-    public function getCurrentUserInfos(): JsonResponse
+    public function getCurrentUserInfos(Request $request): JsonResponse
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/UserController.php',
-        ]);
+        return $this->json($this->getUser());
     }
 
     #[Route('/user/{uuid}', name: 'get_user_infos', methods: ['GET'])]
     public function getUserInfos(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
         return $this->json([
             'message' => 'Welcome to your new controller!',
             'path' => 'src/Controller/UserController.php',
@@ -70,8 +65,6 @@ class UserController extends AbstractController
     #[Route('/user/{uuid}', name: 'patch_user_infos', methods: ['PATCH'])]
     public function patchUserInfos(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
         return $this->json([
             'message' => 'Welcome to your new controller!',
             'path' => 'src/Controller/UserController.php',
@@ -90,8 +83,6 @@ class UserController extends AbstractController
     #[Route('/user/{uuid}', name: 'delete_user_infos', methods: ['DELETE'])]
     public function deleteUserInfos(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
         return $this->json([
             'message' => 'Welcome to your new controller!',
             'path' => 'src/Controller/UserController.php',
