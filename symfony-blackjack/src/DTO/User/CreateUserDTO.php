@@ -23,9 +23,6 @@ class CreateUserDTO
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): ?string
     {
         return $this->password;
@@ -49,6 +46,4 @@ class CreateUserDTO
 
         return $this;
     }
-
- 
 }

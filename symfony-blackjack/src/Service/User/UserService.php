@@ -12,16 +12,19 @@ use App\Service\Form\FormService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
 class UserService
 {
     private EntityManagerInterface $entityManager;
     private FormFactoryInterface $formFactory;
+    private PasswordHasherFactoryInterface $passwordHasherFactory;
 
-    public function __construct(EntityManagerInterface $entityManager, FormFactoryInterface $formFactory)
+    public function __construct(EntityManagerInterface $entityManager, FormFactoryInterface $formFactory, PasswordHasherFactoryInterface $passwordHasherFactory)
     {
         $this->entityManager = $entityManager;
         $this->formFactory = $formFactory;
+        $this->passwordHasherFactory = $passwordHasherFactory;
     }
 
     public function getPaginatedUserList(int $limit = 12, int $page = 0): array
@@ -98,7 +101,10 @@ class UserService
         $user = new User();
         $user->setEmail($createUserDTO->getEmail());
         $user->setUsername($createUserDTO->getUsername());
-        $user->setPassword($createUserDTO->getPassword());
+
+        $hashedPassword = $this->passwordHasherFactory->getPasswordHasher(User::class)->hash($createUserDTO->getPassword());
+
+        $user->setPassword($hashedPassword);
         $user->setCreationDate(new \DateTime());
         $user->setLastUpdateDate(new \DateTime());
 
