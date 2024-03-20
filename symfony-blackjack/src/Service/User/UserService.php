@@ -162,4 +162,10 @@ class UserService
         return $user;
     }
 
+    public function deleteUser(User $user): Success
+    {
+        $this->entityManager->getRepository(User::class)->delete($user);
+        return new Success([], 204);
+    }
+
 }

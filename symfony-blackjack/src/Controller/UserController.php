@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\DTO\Response\Error;
 use App\Service\User\UserService;
+use PHPUnit\Util\Json;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -65,29 +67,43 @@ class UserController extends AbstractController
     }
 
     #[Route('/user/{uuid}', name: 'patch_user_infos', methods: ['PATCH'])]
-    public function patchUserInfos(): JsonResponse
+    public function patchUserInfos(Request $request, string $uuid): JsonResponse
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/UserController.php',
-        ]);
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $getUserResponse = $this->userService->getUserByUuid($uuid);
+        if($getUserResponse instanceof Error) {
+            return $this->json($getUserResponse->getContent(), $getUserResponse->getCode());
+        }
+
+        $user = $getUserResponse->getContent()['user'];
+
+        $payload = json_decode($request->getContent(), true);
+
+        $response = $this->userService->updateUser($user, $payload);
+        return $this->json($response->getContent(), $response->getCode());
     }
 
     #[Route('/user/profile', name: 'delete_current_user_infos', methods: ['DELETE'])]
     public function deleteCurrentUserInfos(): JsonResponse
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/UserController.php',
-        ]);
+        $user = $this->getUser();
+        $deleteUserResponse = $this->userService->deleteUser($user);
+        return $this->json($deleteUserResponse->getContent(), $deleteUserResponse->getCode());
     }
 
     #[Route('/user/{uuid}', name: 'delete_user_infos', methods: ['DELETE'])]
-    public function deleteUserInfos(): JsonResponse
+    public function deleteUserInfos(Request $request, string $uuid): JsonResponse
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/UserController.php',
-        ]);
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $getUserResponse = $this->userService->getUserByUuid($uuid);
+        if($getUserResponse instanceof Error) {
+            return $this->json($getUserResponse->getContent(), $getUserResponse->getCode());
+        }
+
+        $user = $getUserResponse->getContent()['user'];
+        $deleteUserResponse = $this->userService->deleteUser($user);
+        return $this->json($deleteUserResponse->getContent(), $deleteUserResponse->getCode());
     }
 }
