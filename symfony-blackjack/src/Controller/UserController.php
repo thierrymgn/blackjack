@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\DTO\Response\Error;
 use App\Service\User\UserService;
-use PHPUnit\Util\Json;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,7 +22,7 @@ class UserController extends AbstractController
     #[Route('/user', name: 'get_user_list', methods: ['GET'])]
     public function getUserList(Request $request): JsonResponse
     {
-        //$this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $limit = $request->query->get('limit', 12);
         $page = $request->query->get('page', 0);
 
