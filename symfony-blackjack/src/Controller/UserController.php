@@ -45,21 +45,23 @@ class UserController extends AbstractController
     }
 
     #[Route('/user/{uuid}', name: 'get_user_infos', methods: ['GET'])]
-    public function getUserInfos(): JsonResponse
+    public function getUserInfos(string $uuid): JsonResponse
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/UserController.php',
-        ]);
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $response = $this->userService->getUserByUuid($uuid);
+
+        return $this->json($response->getContent(), $response->getCode());
     }
 
     #[Route('/user/profile', name: 'patch_current_user_infos', methods: ['PATCH'])]
-    public function patchCurrentUserInfos(): JsonResponse
+    public function patchCurrentUserInfos(Request $request): JsonResponse
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/UserController.php',
-        ]);
+        $payload = json_decode($request->getContent(), true);
+        $user = $this->getUser();
+
+        $response = $this->userService->updateUser($user, $payload);
+        return $this->json($response->getContent(), $response->getCode());
     }
 
     #[Route('/user/{uuid}', name: 'patch_user_infos', methods: ['PATCH'])]

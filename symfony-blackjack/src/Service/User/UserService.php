@@ -43,9 +43,15 @@ class UserService
         return $response;
     }
 
-    public function getUserByUuid(string $uuid): ?User
+    public function getUserByUuid(string $uuid): Success | Error
     {
-        return $this->entityManager->getRepository(User::class)->findOneBy(['id' => $uuid]);
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['id' => $uuid]);
+
+        if(empty($user)) {
+            return new Error(['error' => 'User not found'], 404);
+        }
+
+        return new Success(['user' => $user], 200);
     }
 
     public function createUser(array $payload): Success | Error
@@ -60,10 +66,10 @@ class UserService
 
         $this->entityManager->getRepository(User::class)->save($user, true);
 
-        return new Success([$user], 201);
+        return new Success(['user' => $user], 201);
     }
 
-    private function createUserValidatePayload(array $payload): CreateUserDTO | Error
+    private function createUserValidatePayload(array $payload, ): CreateUserDTO | Error
     {
         $createUserDTO = new CreateUserDTO();
         $form = $this->formFactory->create(CreateUserType::class, $createUserDTO);
@@ -94,6 +100,51 @@ class UserService
         }
 
         return $createUserDTO;
+    }
+
+    public function updateUser(User $user, array $payload): Success | Error
+    {
+        $updatedUser = $this->updateUserValidatePayload($payload, $user);
+
+        if($updatedUser instanceof Error) {
+            return $updatedUser;
+        }
+
+        $this->entityManager->getRepository(User::class)->save($user, false);
+
+        return new Success(['user' => $user], 200);
+    }
+
+    private function updateUserValidatePayload(array $payload, User $user): User | Error
+    {
+        $form = $this->formFactory->create(CreateUserType::class, $user);
+
+        $form->submit($payload, false);
+
+        $errors = [];
+
+        if(!$form->isValid()) {
+            $errors = FormService::getFormErrors($form);
+        }
+
+        $usernameAlreadyExists = $this->entityManager->getRepository(User::class)->findOneBy(['username' => $user->getUsername()]);
+        $emailAlreadyExists = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $user->getEmail()]);
+
+        if(empty($usernameAlreadyExists) === false) {
+            $form->get('username')->addError(new FormError('Username already exists'));
+        }
+
+        if(empty($emailAlreadyExists) === false) {
+            $form->get('email')->addError(new FormError('Email already exists'));
+        }
+
+        $errors = array_merge($errors, FormService::getFormErrors($form));
+
+        if(!empty($errors)) {
+            return new Error($errors, 400);
+        }
+
+        return $user;
     }
 
     private function createUserFromDTO(CreateUserDTO $createUserDTO): User
