@@ -7,7 +7,6 @@ use App\DTO\Response\Success;
 use App\DTO\User\CreateUserDTO;
 use App\Entity\User;
 use App\Form\User\CreateUserType;
-use App\Repository\UserRepository;
 use App\Service\Form\FormService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
