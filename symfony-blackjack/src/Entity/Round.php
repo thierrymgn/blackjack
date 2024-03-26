@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\RoundRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -31,8 +33,19 @@ class Round
     private ?string $status = null;
 
     #[ORM\ManyToOne(inversedBy: 'rounds')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Game $game = null;
+    #[ORM\JoinColumn]
+    private ?Game $game;
+
+    #[ORM\Column(type: Types::JSON)]
+    private array $dealerCards = [];
+
+    #[ORM\OneToMany(targetEntity: PlayerRound::class, mappedBy: 'round', orphanRemoval: true)]
+    private Collection $playerRounds;
+
+    public function __construct()
+    {
+        $this->playerRounds = new ArrayCollection();
+    }
 
     public function getId(): ?Uuid
     {
@@ -96,6 +109,48 @@ class Round
     public function setGame(?Game $game): static
     {
         $this->game = $game;
+
+        return $this;
+    }
+
+    public function getDealerCards(): array
+    {
+        return $this->dealerCards;
+    }
+
+    public function setDealerCards(array $dealerCards): static
+    {
+        $this->dealerCards = $dealerCards;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PlayerRound>
+     */
+    public function getPlayerRounds(): Collection
+    {
+        return $this->playerRounds;
+    }
+
+    public function addPlayerRound(PlayerRound $playerRound): static
+    {
+        if (!$this->playerRounds->contains($playerRound)) {
+            $this->playerRounds->add($playerRound);
+            $playerRound->setRound($this);
+        }
+
+        return $this;
+    }
+
+    public function removePlayerRound(PlayerRound $playerRound): static
+    {
+        if ($this->playerRounds->removeElement($playerRound)) {
+            // set the owning side to null (unless already changed)
+            if ($playerRound->getRound() === $this) {
+                $playerRound->setRound(null);
+            }
+        }
 
         return $this;
     }

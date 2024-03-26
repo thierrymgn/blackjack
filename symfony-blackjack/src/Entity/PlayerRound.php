@@ -24,12 +24,8 @@ class PlayerRound
     private ?\DateTimeImmutable $lastUpdateDate = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn]
     private ?User $user = null;
-
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Round $round = null;
 
     #[ORM\Column(type: Types::JSON)]
     private array $currentCards = [];
@@ -37,21 +33,16 @@ class PlayerRound
     #[ORM\Column]
     private ?int $wager = null;
 
+    #[ORM\ManyToOne(inversedBy: 'playerRounds')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Round $round;
+
+    #[ORM\Column(length: 255)]
+    private ?string $status = null;
+
     public function getId(): ?Uuid
     {
         return $this->id;
-    }
-
-    public function getUuid(): ?Uuid
-    {
-        return $this->uuid;
-    }
-
-    public function setUuid(Uuid $uuid): static
-    {
-        $this->uuid = $uuid;
-
-        return $this;
     }
 
     public function getCreationDate(): ?\DateTimeImmutable
@@ -89,19 +80,7 @@ class PlayerRound
 
         return $this;
     }
-
-    public function getRound(): ?Round
-    {
-        return $this->round;
-    }
-
-    public function setRound(?Round $round): static
-    {
-        $this->round = $round;
-
-        return $this;
-    }
-
+    
     public function getCurrentCards(): array
     {
         return $this->currentCards;
@@ -122,6 +101,30 @@ class PlayerRound
     public function setWager(int $wager): static
     {
         $this->wager = $wager;
+
+        return $this;
+    }
+
+    public function getRound(): ?Round
+    {
+        return $this->round;
+    }
+
+    public function setRound(?Round $round): static
+    {
+        $this->round = $round;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }

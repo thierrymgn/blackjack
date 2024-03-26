@@ -21,6 +21,15 @@ class RoundRepository extends ServiceEntityRepository
         parent::__construct($registry, Round::class);
     }
 
+    public function save(Round $round, $persist = true): void
+    {
+        if ($persist) {
+            $this->getEntityManager()->persist($round);
+        }
+        $this->getEntityManager()->flush();
+    }
+
+
     //    /**
     //     * @return Round[] Returns an array of Round objects
     //     */

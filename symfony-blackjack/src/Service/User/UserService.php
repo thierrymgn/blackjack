@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Form\User\CreateUserType;
 use App\Service\Form\FormService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
@@ -18,12 +19,14 @@ class UserService
     private EntityManagerInterface $entityManager;
     private FormFactoryInterface $formFactory;
     private PasswordHasherFactoryInterface $passwordHasherFactory;
+    private LoggerInterface $logger;
 
-    public function __construct(EntityManagerInterface $entityManager, FormFactoryInterface $formFactory, PasswordHasherFactoryInterface $passwordHasherFactory)
+    public function __construct(EntityManagerInterface $entityManager, FormFactoryInterface $formFactory, PasswordHasherFactoryInterface $passwordHasherFactory, LoggerInterface $logger)
     {
         $this->entityManager = $entityManager;
         $this->formFactory = $formFactory;
         $this->passwordHasherFactory = $passwordHasherFactory;
+        $this->logger = $logger;
     }
 
     public function getPaginatedUserList(int $limit = 12, int $page = 0): array
@@ -35,8 +38,7 @@ class UserService
             'limit' => $limit,
             'page' => $page+1,
             'content' => $users,
-            'total' => $totalUsers
-            
+            'total' => $totalUsers  
         ];
 
         return $response;
@@ -58,12 +60,15 @@ class UserService
         $createUserDTO = $this->createUserValidatePayload($payload);
 
         if($createUserDTO instanceof Error) {
+            $this->logger->error('Invalid user creation', ['errors' => $createUserDTO->getContent(), 'payload' => $payload]);
             return $createUserDTO;
         }
 
         $user = $this->createUserFromDTO($createUserDTO);
 
         $this->entityManager->getRepository(User::class)->save($user, true);
+
+        $this->logger->info('User created', ['user' => $user]);
 
         return new Success(['user' => $user], 201);
     }
@@ -106,10 +111,14 @@ class UserService
         $updatedUser = $this->updateUserValidatePayload($payload, $user);
 
         if($updatedUser instanceof Error) {
+            $this->logger->error('Invalid user update', ['errors' => $updatedUser->getContent(), 'payload' => $payload]);
             return $updatedUser;
         }
 
+        $user->setLastUpdateDate(new \DateTime());
+
         $this->entityManager->getRepository(User::class)->save($user, false);
+        $this->logger->info('User created', ['user' => $user]);
 
         return new Success(['user' => $user], 200);
     }
@@ -157,6 +166,7 @@ class UserService
         $user->setPassword($hashedPassword);
         $user->setCreationDate(new \DateTime());
         $user->setLastUpdateDate(new \DateTime());
+        $user->setWallet(1000);
 
         return $user;
     }
@@ -164,6 +174,8 @@ class UserService
     public function deleteUser(User $user): Success
     {
         $this->entityManager->getRepository(User::class)->delete($user);
+        $this->logger->info('User deleted', ['user' => $user]);
+
         return new Success([], 204);
     }
 
