@@ -28,7 +28,7 @@ class UserService
 
     public function getPaginatedUserList(int $limit = 12, int $page = 0): array
     {
-        $users = $this->entityManager->getRepository(User::class)->getPaginatedUsers($limit, $page);
+        $users = $this->entityManager->getRepository(User::class)->findBy([], [], $limit, $page * $limit);
         $totalUsers = $this->entityManager->getRepository(User::class)->countUsers();
 
         $response = [

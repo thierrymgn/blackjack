@@ -67,7 +67,7 @@ class GameController extends AbstractController
     }
 
     #[Route('/game/{gameId}', name: 'delete_game', methods: ['DELETE'])]
-    public function deleteGame(string $gameId, SerializerInterface $serializer): Response
+    public function deleteGame(string $gameId): Response
     {
         $user = $this->getUser();
         $deleteGameResponse = $this->gameService->deleteGame($user, $gameId);

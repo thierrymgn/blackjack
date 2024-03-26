@@ -46,6 +46,4 @@ class PlayerRoundController extends AbstractController
             'path' => 'src/Controller/PlayerRoundController.php',
         ]);
     }
-
-    
 }

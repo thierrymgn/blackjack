@@ -26,15 +26,6 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         parent::__construct($registry, User::class);
     }
 
-    public function getPaginatedUsers(int $limit = 12, int $page = 0): array
-    {
-        return $this->createQueryBuilder('u')
-            ->setMaxResults($limit)
-            ->setFirstResult($limit * $page)
-            ->getQuery()
-            ->getResult();
-    }
-
     public function countUsers(): int
     {
         return $this->createQueryBuilder('u')
