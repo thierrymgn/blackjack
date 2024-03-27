@@ -39,42 +39,39 @@ class PlayerRoundController extends AbstractController
         return $this->json($playerRound, 200, [], ['groups' => ['playerRound']]);
     }
 
-    #[Route('/player/round/{uuid}', name: 'get_round', methods: ['GET'])]
+    #[Route('/player-round/{uuid}', name: 'get_round', methods: ['GET'])]
     public function getRound(string $uuid, SerializerInterface $serializer): Response
     {
         $user = $this->getUser();
-        $response = $this->playerRoundService->getRound($user, $uuid);
+        list($playerRound, $err) = $this->playerRoundService->getRound($user, $uuid);
+        if ($err !== null) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
 
-        $jsonObject = $serializer->serialize($response->getContent(), 'json', [
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ]);
-
-        return new Response($jsonObject, 200, ['Content-Type' => 'application/json']);
+        return $this->json($playerRound, 200, [], ['groups' => ['playerRound']]);
     }
 
-    #[Route('/player/round/{uuid}/hit', name: 'hit_round', methods: ['POST'])]
-    public function hitRound(): JsonResponse
+    #[Route('/player-round/{uuid}/hit', name: 'hit_round', methods: ['PATCH'])]
+    public function hitRound(string $uuid): JsonResponse
     {
         $user = $this->getUser();
-        
+        list($playerRound, $err) = $this->playerRoundService->hitRound($user, $uuid);
+        if ($err !== null) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
 
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/PlayerRoundController.php',
-        ]);
+        return $this->json($playerRound, 200, [], ['groups' => ['playerRound']]);
     }
 
-    #[Route('/player/round/{uuid}/stand', name: 'stand_round', methods: ['POST'])]
-    public function standRound(): JsonResponse
+    #[Route('/player-round/{uuid}/stand', name: 'stand_round', methods: ['PATCH'])]
+    public function standRound(string $uuid): JsonResponse
     {
         $user = $this->getUser();
-        
+        list($playerRound, $err) = $this->playerRoundService->standRound($user, $uuid);
+        if ($err !== null) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
 
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/PlayerRoundController.php',
-        ]);
+        return $this->json($playerRound, 200, [], ['groups' => ['playerRound']]);
     }
 }

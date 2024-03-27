@@ -83,26 +83,75 @@ class PlayerRoundService
         return [$playerRound, null];
     }
 
-    public function getRound(User $user, string $uuid): Success | Error
+    public function getRound(User $user, string $uuid): array
     {
-        $round = $this->roundRepository->findOneById($uuid);
-        if (empty($round)) {
-            return new Error(['error' => 'Round not found'], 404);
-        }
-
-        if (!in_array($user, $round->getGame()->getUsers()->toArray())) {
-            return new Error(['error' => 'You are not allowed to play this round'], 403);
-        }
-
-        $playerRound = $this->playerRoundRepository->findOneBy([
-            'round' => $round, 
-            'user' => $user
-        ]);
+        
+        $playerRound = $this->playerRoundRepository->findOneById($uuid);
 
         if(empty($playerRound)) {
-            return new Error(['error' => 'You did not play this round'], 404);
+            return [null, new Error(['error' => 'Round not found'], 404)];
         }
 
-        return new Success(['round' => $playerRound], 200);
+        if ($user !== $playerRound->getUser()) {
+            return [null, new Error(['error' => 'You are not allowed to play this round'], 403)];
+        }
+
+        return [$playerRound, null];
+    }
+
+    public function hitRound(User $user, string $uuid): array
+    {
+        $playerRound = $this->playerRoundRepository->findOneById($uuid);
+
+        if(empty($playerRound)) {
+            return [null, new Error(['error' => 'Round not found'], 404)];
+        }
+
+        if ($user !== $playerRound->getUser()) {
+            return [null, new Error(['error' => 'You are not allowed to play this round'], 403)];
+        }
+
+        if ($playerRound->getRound()->getStatus() !== 'playing') {
+            return [null, new Error(['error' => 'The round has not started yet'], 409)];
+        }
+
+        if ($playerRound->getStatus() !== 'playing') {
+            return [null, new Error(['error' => 'You can not hit this round', 'status' => $playerRound->getStatus()], 409)];
+        }
+
+        $playerRound->setLastUpdateDate(new \DateTimeImmutable());
+        //$drawnCard = 
+
+        $this->entityManager->getRepository(PlayerRound::class)->save($playerRound, false);
+
+        return [$playerRound, null];
+    }
+
+    public function standRound(User $user, string $uuid): array
+    {
+        $playerRound = $this->playerRoundRepository->findOneById($uuid);
+
+        if(empty($playerRound)) {
+            return [null, new Error(['error' => 'Round not found'], 404)];
+        }
+
+        if ($user !== $playerRound->getUser()) {
+            return [null, new Error(['error' => 'You are not allowed to play this round'], 403)];
+        }
+
+        if ($playerRound->getRound()->getStatus() !== 'playing') {
+            return [null, new Error(['error' => 'The round has not started yet'], 409)];
+        }
+
+        if ($playerRound->getStatus() !== 'playing') {
+            return [null, new Error(['error' => 'You can not stand this round', 'status' => $playerRound->getStatus()], 409)];
+        }
+
+        $playerRound->setLastUpdateDate(new \DateTimeImmutable());
+        $playerRound->setStatus('standed');
+
+        $this->entityManager->getRepository(PlayerRound::class)->save($playerRound, false);
+
+        return [$playerRound, null];
     }
 }
