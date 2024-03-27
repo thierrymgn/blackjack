@@ -7,11 +7,10 @@ use App\DTO\Response\Success;
 use App\Entity\PlayerRound;
 use App\Entity\Round;
 use App\Entity\User;
-use App\Form\StartRoundType;
+use App\Form\PlayerRound\WagerType;
 use App\Repository\PlayerRoundRepository;
 use App\Repository\RoundRepository;
 use App\Service\Form\FormService;
-use App\Service\Round\RoundService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 
@@ -45,48 +44,43 @@ class PlayerRoundService
         return $playerRound;
     }
 
-    public function wageRound(User $user, string $uuid, array $payload): Success | Error
+    public function wageRound(User $user, string $uuid, array $payload): array
     {
-        $round = $this->roundRepository->findOneById($uuid);
-        if (empty($round)) {
-            return new Error(['error' => 'Round not found'], 404);
+        $playerRound = $this->playerRoundRepository->findOneById($uuid);
+        if (empty($playerRound)) {
+            return [null, new Error(['error' => 'Round not found'], 404)];
         }
 
-        if (!in_array($user, $round->getGame()->getUsers()->toArray())) {
-            return new Error(['error' => 'You are not allowed to play this round'], 403);
+        if ($user !== $playerRound->getUser()) {
+            return [null, new Error(['error' => 'You are not allowed to play this round'], 403)];
         }
 
-        $playerRoundAlreadyExists = $this->playerRoundRepository->findOneBy([
-            'round' => $round, 
-            'user' => $user
-        ]);
-
-        if($playerRoundAlreadyExists) {
-            return new Error(['error' => 'You already played this round'], 400);
+        if ($playerRound->getStatus() !== 'created') {
+            return [null, new Error(['error' => 'You already waged this round'], 409)];
         }
 
-        $playerRound = new PlayerRound();
-
-        $form = $this->formFactory->create(StartRoundType::class, $playerRound, ['currentWallet' => $user->getWallet()]);
+        $form = $this->formFactory->create(WagerType::class, $playerRound, ['currentWallet' => $user->getWallet()]);
         $form->submit($payload);
 
         if (!$form->isValid()) {
-            return new Error(['error' => 'Invalid payload', 'errors' => FormService::getFormErrors($form)], 400);
+            return [null, new Error(['error' => 'Invalid payload', 'errors' => FormService::getFormErrors($form)], 400)];
         }
 
         $playerRound->setWager($payload['wager']);
-        $playerRound->setCreationDate(new \DateTimeImmutable());
         $playerRound->setLastUpdateDate(new \DateTimeImmutable());
-        $playerRound->setUser($user);
-        $playerRound->setRound($round);
         $playerRound->setStatus('waged');
 
         $this->entityManager->getRepository(PlayerRound::class)->save($playerRound);
+
+        $user->setWallet($user->getWallet() - $payload['wager']);
+        $user->setLastUpdateDate(new \DateTimeImmutable());
+        
+        $this->entityManager->getRepository(User::class)->save($user, false);
         
         $globalRound = $playerRound->getRound();
         //$this->roundService->startRound($globalRound);
 
-        return new Success(['round' => $playerRound], 200);
+        return [$playerRound, null];
     }
 
     public function getRound(User $user, string $uuid): Success | Error

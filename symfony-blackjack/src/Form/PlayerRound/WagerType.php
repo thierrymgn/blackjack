@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Form;
+namespace App\Form\PlayerRound;
 
+use App\Entity\PlayerRound;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -10,7 +11,7 @@ use Symfony\Component\Validator\Constraints\LessThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Positive;
 
-class StartRoundType extends AbstractType
+class WagerType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -32,6 +33,8 @@ class StartRoundType extends AbstractType
         $resolver->setDefaults([
             'currentWallet' => 'currentWallet',
             'csrf_protection' => false,
+            'data_class' => PlayerRound::class,
+
         ]);
     }
 }

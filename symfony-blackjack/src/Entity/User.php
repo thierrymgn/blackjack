@@ -58,7 +58,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $games;
 
     #[ORM\Column]
-    #[Groups(['user', 'game'])]
+    #[Groups(['user', 'game', 'round', 'playerRound'])]
     private ?int $wallet = null;
 
     public function __construct()

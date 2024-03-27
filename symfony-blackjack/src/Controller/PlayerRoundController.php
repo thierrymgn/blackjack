@@ -20,21 +20,23 @@ class PlayerRoundController extends AbstractController
         $this->playerRoundService = $playerRoundService;
     }
 
-    #[Route('/player/round/{uuid}/wage', name: 'start_round', methods: ['POST'])]
-    public function wageRound(string $uuid, Request $request, SerializerInterface $serializer): Response
+    #[Route('/player-round/{uuid}/wage', name: 'start_round', methods: ['PATCH'])]
+    public function wageRound(string $uuid, Request $request): JsonResponse
     {
         $user = $this->getUser();       
         $payload = json_decode($request->getContent(), true);
 
-        $response = $this->playerRoundService->wageRound($user, $uuid, $payload);
+        if(null === $payload) {
+            return $this->json(['error' => 'Invalid payload'], 400);
+        }
 
-        $jsonObject = $serializer->serialize($response->getContent(), 'json', [
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ]);
+        list($playerRound, $err) = $this->playerRoundService->wageRound($user, $uuid, $payload);
 
-        return new Response($jsonObject, 200, ['Content-Type' => 'application/json']);
+        if ($err !== null) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
+
+        return $this->json($playerRound, 200, [], ['groups' => ['playerRound']]);
     }
 
     #[Route('/player/round/{uuid}', name: 'get_round', methods: ['GET'])]
