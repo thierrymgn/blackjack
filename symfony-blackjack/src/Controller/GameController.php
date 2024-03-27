@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Service\Game\GameService;
+use Error;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -19,58 +21,53 @@ class GameController extends AbstractController
     }
 
     #[Route('/game', name: 'create_game', methods: ['POST'])]
-    public function createGame(SerializerInterface $serializer): Response
+    public function createGame(): JsonResponse
     {
-        $response = $this->gameService->createGame($this->getUser());
+        list($game, $err) = $this->gameService->createGame($this->getUser());
 
-        $jsonObject = $serializer->serialize($response, 'json', [
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ]);
+        if ($err !== null) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
 
-        return new Response($jsonObject, $response->getCode(), ['Content-Type' => 'application/json']);
+        return $this->json($game, 201, [], ['groups' => ['game']]);
     }
 
     #[Route('/game', name: 'get_game_list', methods: ['GET'])]
-    public function getGameList(Request $request, SerializerInterface $serializer): Response
+    public function getGameList(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $limit = $request->query->get('limit', 12);
         $page = $request->query->get('page', 0);
 
-        $response = $this->gameService->getPaginatedGameList($limit, $page);
+        list($games, $err) = $this->gameService->getPaginatedGameList($limit, $page);
 
-        $jsonObject = $serializer->serialize($response, 'json', [
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ]);
-
-        return new Response($jsonObject, $response->getCode(), ['Content-Type' => 'application/json']);
+        return $this->json($games, 201, [], ['groups' => ['game']]);
     }
 
 
     #[Route('/game/{gameId}', name: 'get_game', methods: ['GET'])]
-    public function getGame(string $gameId, SerializerInterface $serializer): Response
+    public function getGame(string $gameId): JsonResponse
     {
         $user = $this->getUser();
-        $response = $this->gameService->getGame($user, $gameId);
+        list($game, $err) = $this->gameService->getGame($user, $gameId);
 
-        $jsonObject = $serializer->serialize($response, 'json', [
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ]);
+        if ($err !== null) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
 
-        return new Response($jsonObject, $response->getCode(), ['Content-Type' => 'application/json']);
+        return $this->json($game, 200, [], ['groups' => ['game']]);
     }
 
     #[Route('/game/{gameId}', name: 'delete_game', methods: ['DELETE'])]
     public function deleteGame(string $gameId): Response
     {
         $user = $this->getUser();
-        $deleteGameResponse = $this->gameService->deleteGame($user, $gameId);
-        return $this->json($deleteGameResponse->getContent(), $deleteGameResponse->getCode());
+        list($game, $err) = $this->gameService->deleteGame($user, $gameId);
+
+        if ($err !== null) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
+
+        return $this->json([], 204);
     }
 }

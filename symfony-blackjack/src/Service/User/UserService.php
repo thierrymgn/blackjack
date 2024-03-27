@@ -42,27 +42,27 @@ class UserService
             'total' => $totalUsers  
         ];
 
-        return $response;
+        return [$response, null];
     }
 
-    public function getUserByUuid(string $uuid): Success | Error
+    public function getUserByUuid(string $uuid): array
     {
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['id' => $uuid]);
 
         if(empty($user)) {
-            return new Error(['error' => 'User not found'], 404);
+            return [null, new Error(['error' => 'User not found'], 404)];
         }
 
-        return new Success(['user' => $user], 200);
+        return [$user, null];
     }
 
-    public function createUser(array $payload): Success | Error
+    public function createUser(array $payload): array
     {
-        $createUserDTO = $this->createUserValidatePayload($payload);
+        list($createUserDTO, $err) = $this->createUserValidatePayload($payload);
 
-        if($createUserDTO instanceof Error) {
-            $this->logger->error('Invalid user creation', ['errors' => $createUserDTO->getContent(), 'payload' => $payload]);
-            return $createUserDTO;
+        if($err !== null) {
+            $this->logger->error('Invalid user creation', ['errors' => $err->getContent(), 'payload' => $payload]);
+            return [null, $err];
         }
 
         $user = $this->createUserFromDTO($createUserDTO);
@@ -71,10 +71,10 @@ class UserService
 
         $this->logger->info('User created', ['user' => $user]);
 
-        return new Success(['user' => $user], 201);
+        return [$user, null];
     }
 
-    private function createUserValidatePayload(array $payload, ): CreateUserDTO | Error
+    private function createUserValidatePayload(array $payload, ): array
     {
         $createUserDTO = new CreateUserDTO();
         $form = $this->formFactory->create(CreateUserType::class, $createUserDTO);
@@ -101,30 +101,30 @@ class UserService
         $errors = array_merge($errors, FormService::getFormErrors($form));
 
         if(!empty($errors)) {
-            return new Error($errors, 400);
+            return [null, new Error($errors, 400)];
         }
 
-        return $createUserDTO;
+        return [$createUserDTO, null];
     }
 
-    public function updateUser(User $user, array $payload): Success | Error
+    public function updateUser(User $user, array $payload): array
     {
-        $updatedUser = $this->updateUserValidatePayload($payload, $user);
+        list($updatedUser, $err) = $this->updateUserValidatePayload($payload, $user);
 
-        if($updatedUser instanceof Error) {
-            $this->logger->error('Invalid user update', ['errors' => $updatedUser->getContent(), 'payload' => $payload]);
-            return $updatedUser;
+        if($err !== null) {
+            $this->logger->error('Invalid user update', ['errors' => $err->getContent(), 'payload' => $payload]);
+            return [null, $err];
         }
 
         $user->setLastUpdateDate(new \DateTime());
 
-        $this->entityManager->getRepository(User::class)->save($user, false);
-        $this->logger->info('User created', ['user' => $user]);
+        $this->entityManager->getRepository(User::class)->save($updatedUser, false);
+        $this->logger->info('User created', ['user' => $updatedUser]);
 
-        return new Success(['user' => $user], 200);
+        return [$updatedUser, null];
     }
 
-    private function updateUserValidatePayload(array $payload, User $user): User | Error
+    private function updateUserValidatePayload(array $payload, User $user): array
     {
         $form = $this->formFactory->create(UpdateUserType::class, $user);
 
@@ -150,10 +150,10 @@ class UserService
         $errors = array_merge($errors, FormService::getFormErrors($form));
 
         if(!empty($errors)) {
-            return new Error($errors, 400);
+            return [null, new Error($errors, 400)];
         }
 
-        return $user;
+        return [$user, null];
     }
 
     private function createUserFromDTO(CreateUserDTO $createUserDTO): User
@@ -172,13 +172,13 @@ class UserService
         return $user;
     }
 
-    public function deleteUser(User $user): Success
+    public function deleteUser(User $user): array
     {
         $this->entityManager->remove($user);
         $this->entityManager->flush();
         $this->logger->info('User deleted', ['user' => $user]);
 
-        return new Success([], 204);
+        return [null, null];
     }
 
 }

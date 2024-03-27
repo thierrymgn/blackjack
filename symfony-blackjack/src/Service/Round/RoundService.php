@@ -7,6 +7,7 @@ use App\DTO\Response\Error;
 use App\DTO\Response\Success;
 use App\Entity\Game;
 use App\Entity\Round;
+use App\Service\PlayerRound\PlayerRoundService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -14,14 +15,16 @@ class RoundService
 {
     private EntityManagerInterface $entityManager;
     private LoggerInterface $logger;
+    private PlayerRoundService $playerRoundService;
 
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger, PlayerRoundService $playerRoundService)
     {
         $this->entityManager = $entityManager;
         $this->logger = $logger;
+        $this->playerRoundService = $playerRoundService;
     }
 
-    public function createRound(Game $game): Success | Error
+    public function addNewRoundToGame(Game $game): Round
     {
         $round = new Round();
         $round->setCreationDate(new \DateTimeImmutable());
@@ -30,10 +33,19 @@ class RoundService
         $round->setGame($game);
         $round->setStatus('started');
 
-        $this->entityManager->getRepository(Round::class)->save($round);
+        $game->addRound($round);
+        $this->entityManager->getRepository(Round::class)->save($round, true);
+
         $this->logger->info('Round created', ['round' => $round]);
 
-        return new Success(['round' => $round], 201);
+        foreach ($game->getUsers() as $user) {
+            $playerRound = $this->playerRoundService->addNewPlayerRoundToRound($user, $round);
+            $round->addPlayerRound($playerRound);
+        }
+
+        $this->entityManager->getRepository(Round::class)->save($round, false);
+
+        return $round;
     }
 
     private function generateDeck(): array

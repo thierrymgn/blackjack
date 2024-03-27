@@ -5,6 +5,7 @@ namespace App\Service\PlayerRound;
 use App\DTO\Response\Error;
 use App\DTO\Response\Success;
 use App\Entity\PlayerRound;
+use App\Entity\Round;
 use App\Entity\User;
 use App\Form\StartRoundType;
 use App\Repository\PlayerRoundRepository;
@@ -21,17 +22,29 @@ class PlayerRoundService
     private RoundRepository $roundRepository;
     private EntityManagerInterface $entityManager;
     private FormFactoryInterface $formFactory;
-    private RoundService $roundService;
 
-    public function __construct(PlayerRoundRepository $playerRoundRepository, RoundRepository $roundRepository, EntityManagerInterface $entityManager,  FormFactoryInterface $formFactory, RoundService $roundService)
+    public function __construct(PlayerRoundRepository $playerRoundRepository, RoundRepository $roundRepository, EntityManagerInterface $entityManager, FormFactoryInterface $formFactory)
     {
         $this->playerRoundRepository = $playerRoundRepository;
         $this->roundRepository = $roundRepository;
         $this->entityManager = $entityManager;
         $this->formFactory = $formFactory;
-        $this->roundService = $roundService;
     }
-    
+   
+    public function addNewPlayerRoundToRound(User $user, Round $round): PlayerRound
+    {
+        $playerRound = new PlayerRound();
+        $playerRound->setCreationDate(new \DateTimeImmutable());
+        $playerRound->setLastUpdateDate(new \DateTimeImmutable());
+        $playerRound->setUser($user);
+        $playerRound->setRound($round);
+        $playerRound->setStatus('created');
+        $playerRound->setWager(0);
+        $this->entityManager->getRepository(PlayerRound::class)->save($playerRound);
+
+        return $playerRound;
+    }
+
     public function wageRound(User $user, string $uuid, array $payload): Success | Error
     {
         $round = $this->roundRepository->findOneById($uuid);
@@ -71,7 +84,7 @@ class PlayerRoundService
         $this->entityManager->getRepository(PlayerRound::class)->save($playerRound);
         
         $globalRound = $playerRound->getRound();
-        $this->roundService->startRound($globalRound);
+        //$this->roundService->startRound($globalRound);
 
         return new Success(['round' => $playerRound], 200);
     }

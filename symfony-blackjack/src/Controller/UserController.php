@@ -26,8 +26,13 @@ class UserController extends AbstractController
         $limit = $request->query->get('limit', 12);
         $page = $request->query->get('page', 0);
 
-        $users = $this->userService->getPaginatedUserList($limit, $page);
-        return $this->json($users);
+        list($users, $err) = $this->userService->getPaginatedUserList($limit, $page);
+
+        if($err instanceof Error) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
+
+        return $this->json($users, 200, [], ['groups' => 'user']);
     }
 
     #[Route('/user', name: 'post_user', methods: ['POST'])]
@@ -39,14 +44,19 @@ class UserController extends AbstractController
             return $this->json(['error' => 'Invalid payload'], 400);
         }
 
-        $response = $this->userService->createUser($payload);
-        return $this->json($response->getContent(), $response->getCode());
+        list($user, $err) = $this->userService->createUser($payload);
+
+        if($err instanceof Error) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
+
+        return $this->json($user, 201, [], ['groups' => 'user']);
     }
 
     #[Route('/user/profile', name: 'get_current_user_infos', methods: ['GET'])]
     public function getCurrentUserInfos(Request $request): JsonResponse
     {
-        return $this->json($this->getUser());
+        return $this->json($this->getUser(), 200, [], ['groups' => 'user']);
     }
 
     #[Route('/user/{uuid}', name: 'get_user_infos', methods: ['GET'])]
@@ -54,9 +64,13 @@ class UserController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $response = $this->userService->getUserByUuid($uuid);
+        list($user, $err) = $this->userService->getUserByUuid($uuid);
 
-        return $this->json($response->getContent(), $response->getCode());
+        if($err instanceof Error) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
+
+        return $this->json($user, 200, [], ['groups' => 'user']);
     }
 
     #[Route('/user/profile', name: 'patch_current_user_infos', methods: ['PATCH'])]
@@ -65,8 +79,13 @@ class UserController extends AbstractController
         $payload = json_decode($request->getContent(), true);
         $user = $this->getUser();
 
-        $response = $this->userService->updateUser($user, $payload);
-        return $this->json($response->getContent(), $response->getCode());
+        list($user, $err) = $this->userService->updateUser($user, $payload);
+
+        if($err instanceof Error) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
+
+        return $this->json($user, 200, [], ['groups' => 'user']);
     }
 
     #[Route('/user/{uuid}', name: 'patch_user_infos', methods: ['PATCH'])]
@@ -74,25 +93,32 @@ class UserController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $getUserResponse = $this->userService->getUserByUuid($uuid);
-        if($getUserResponse instanceof Error) {
-            return $this->json($getUserResponse->getContent(), $getUserResponse->getCode());
+        list($user, $err) = $this->userService->getUserByUuid($uuid);
+        if($err instanceof Error) {
+            return $this->json($err->getContent(), $err->getCode());
         }
-
-        $user = $getUserResponse->getContent()['user'];
 
         $payload = json_decode($request->getContent(), true);
 
-        $response = $this->userService->updateUser($user, $payload);
-        return $this->json($response->getContent(), $response->getCode());
+        list($user, $err) = $this->userService->updateUser($user, $payload);
+        if($err instanceof Error) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
+
+        return $this->json($user, 200, [], ['groups' => 'user']);
     }
 
     #[Route('/user/profile', name: 'delete_current_user_infos', methods: ['DELETE'])]
     public function deleteCurrentUserInfos(): JsonResponse
     {
         $user = $this->getUser();
-        $deleteUserResponse = $this->userService->deleteUser($user);
-        return $this->json($deleteUserResponse->getContent(), $deleteUserResponse->getCode());
+        list($user, $err) = $this->userService->deleteUser($user);
+
+        if($err instanceof Error) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
+
+        return $this->json([], 204);
     }
 
     #[Route('/user/{uuid}', name: 'delete_user_infos', methods: ['DELETE'])]
@@ -100,13 +126,12 @@ class UserController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $getUserResponse = $this->userService->getUserByUuid($uuid);
-        if($getUserResponse instanceof Error) {
-            return $this->json($getUserResponse->getContent(), $getUserResponse->getCode());
+        list($user, $err) = $this->userService->getUserByUuid($uuid);
+        if($err instanceof Error) {
+            return $this->json($err->getContent(), $err->getCode());
         }
-
-        $user = $getUserResponse->getContent()['user'];
-        $deleteUserResponse = $this->userService->deleteUser($user);
-        return $this->json($deleteUserResponse->getContent(), $deleteUserResponse->getCode());
+        
+        list($user, $err) = $this->userService->deleteUser($user);
+        return $this->json([], 204);
     }
 }

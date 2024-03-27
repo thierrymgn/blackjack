@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Uid\Uuid;
 
@@ -18,28 +19,36 @@ class Round
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    #[Groups(['round', 'game'])]
     private ?Uuid $id;
 
     #[ORM\Column]
+    #[Groups(['round', 'game'])]
     private ?\DateTimeImmutable $creationDate = null;
 
     #[ORM\Column]
+    #[Groups(['round', 'game'])]
     private ?\DateTimeImmutable $lastUpdateDate = null;
 
     #[ORM\Column(type: Types::JSON)]
+    #[Groups(['round'])]
     private array $cardsLeft = [];
 
     #[ORM\Column(length: 255)]
+    #[Groups(['round', 'game'])]
     private ?string $status = null;
 
     #[ORM\ManyToOne(inversedBy: 'rounds')]
     #[ORM\JoinColumn]
+    #[Groups(['round'])]
     private ?Game $game;
 
     #[ORM\Column(type: Types::JSON)]
+    #[Groups(['round', 'game'])]
     private array $dealerCards = [];
 
     #[ORM\OneToMany(targetEntity: PlayerRound::class, mappedBy: 'round', orphanRemoval: true)]
+    #[Groups(['round', 'game'])]
     private Collection $playerRounds;
 
     public function __construct()

@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: GameRepository::class)]
@@ -16,21 +17,27 @@ class Game
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    #[Groups(['user', 'game'])]
     private ?Uuid $id;
 
     #[ORM\Column]
+    #[Groups(['user', 'game'])]
     private ?\DateTimeImmutable $creationDate = null;
 
     #[ORM\Column]
+    #[Groups(['user', 'game'])]
     private ?\DateTimeImmutable $lastUpdateDate = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['user', 'game'])]
     private ?string $status = null;
 
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'games')]
+    #[Groups(['game'])]
     private Collection $users;
 
     #[ORM\OneToMany(targetEntity: Round::class, mappedBy: 'game', orphanRemoval: true)]
+    #[Groups(['game'])]
     private Collection $rounds;
 
     public function __construct()

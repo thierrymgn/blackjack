@@ -6,6 +6,7 @@ use App\Repository\PlayerRoundRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: PlayerRoundRepository::class)]
@@ -15,29 +16,37 @@ class PlayerRound
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    #[Groups(['game', 'round', 'playerRound'])]
     private ?Uuid $id;
 
     #[ORM\Column]
+    #[Groups(['game', 'round', 'playerRound'])]
     private ?\DateTimeImmutable $creationDate = null;
 
     #[ORM\Column]
+    #[Groups(['game', 'round', 'playerRound'])]
     private ?\DateTimeImmutable $lastUpdateDate = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn]
+    #[Groups(['game', 'round', 'playerRound'])]
     private ?User $user = null;
 
     #[ORM\Column(type: Types::JSON)]
+    #[Groups(['playerRound'])]
     private array $currentCards = [];
 
     #[ORM\Column]
+    #[Groups(['playerRound'])]
     private ?int $wager = null;
 
     #[ORM\ManyToOne(inversedBy: 'playerRounds')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['playerRound'])]
     private ?Round $round;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['game', 'round', 'playerRound'])]
     private ?string $status = null;
 
     public function getId(): ?Uuid
