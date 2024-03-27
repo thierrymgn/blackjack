@@ -7,6 +7,7 @@ use App\DTO\Response\Success;
 use App\DTO\User\CreateUserDTO;
 use App\Entity\User;
 use App\Form\User\CreateUserType;
+use App\Form\User\UpdateUserType;
 use App\Service\Form\FormService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
@@ -116,7 +117,7 @@ class UserService
 
     private function updateUserValidatePayload(array $payload, User $user): User | Error
     {
-        $form = $this->formFactory->create(CreateUserType::class, $user);
+        $form = $this->formFactory->create(UpdateUserType::class, $user);
 
         $form->submit($payload, false);
 
@@ -163,7 +164,8 @@ class UserService
 
     public function deleteUser(User $user): Success
     {
-        $this->entityManager->getRepository(User::class)->delete($user);
+        $this->entityManager->remove($user);
+        $this->entityManager->flush();
         return new Success([], 204);
     }
 
