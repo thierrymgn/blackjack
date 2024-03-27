@@ -35,6 +35,10 @@ class UserController extends AbstractController
     {
         $payload = json_decode($request->getContent(), true);
 
+        if(null === $payload) {
+            return $this->json(['error' => 'Invalid payload'], 400);
+        }
+
         $response = $this->userService->createUser($payload);
         return $this->json($response->getContent(), $response->getCode());
     }

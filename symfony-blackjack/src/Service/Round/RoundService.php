@@ -7,20 +7,18 @@ use App\DTO\Response\Error;
 use App\DTO\Response\Success;
 use App\Entity\Game;
 use App\Entity\Round;
-use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Form\FormError;
-use Symfony\Component\Form\FormFactoryInterface;
+use Psr\Log\LoggerInterface;
 
 class RoundService
 {
     private EntityManagerInterface $entityManager;
-    private FormFactoryInterface $formFactory;
+    private LoggerInterface $logger;
 
-    public function __construct(EntityManagerInterface $entityManager, FormFactoryInterface $formFactory)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         $this->entityManager = $entityManager;
-        $this->formFactory = $formFactory;
+        $this->logger = $logger;
     }
 
     public function createRound(Game $game): Success | Error
@@ -32,8 +30,8 @@ class RoundService
         $round->setGame($game);
         $round->setStatus('started');
 
-        $this->entityManager->persist($round);
-        $this->entityManager->flush();
+        $this->entityManager->getRepository(Round::class)->save($round);
+        $this->logger->info('Round created', ['round' => $round]);
 
         return new Success(['round' => $round], 201);
     }
@@ -55,5 +53,51 @@ class RoundService
         return $deck;
     }
 
+    public function startRound(Round $round): Success | Error
+    {
+        if (!$this->hasAllPlayerRoundBeenWaged($round)) {
+            return new Error(['error' => 'Not all player rounds have been waged'], 400);
+        }
 
+        $round = $this->setCards($round);
+
+        $this->entityManager->getRepository(Round::class)->save($round, false);
+
+        return new Success(['round' => $round], 200);
+    }
+
+    public function hasAllPlayerRoundBeenWaged(Round $round): bool
+    {
+        $playerRounds = $round->getPlayerRounds();
+
+        foreach ($playerRounds as $playerRound) {
+            if($playerRound->getStatus() !== 'waged') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function setCards(Round $round): Round
+    {
+        $cards = $round->getCardsLeft();
+        $playerRounds = $round->getPlayerRounds();
+
+        foreach ($playerRounds as $playerRound) {
+            $playerRound->setCurrentCards(array_splice($cards, 0, 2));
+            $playerRound->setStatus('playing');
+            $playerRound->setLastUpdateDate(new \DateTimeImmutable());
+        }
+
+        $round->setDealerCards(array_splice($cards, 0, 1));
+
+        $round->setCardsLeft($cards);
+        $round->setStatus('playing');
+
+        $round->getGame()->setLastUpdateDate(new \DateTimeImmutable());
+        $round->getGame()->setStatus('playing');
+
+        return $round;
+    }
 }

@@ -49,6 +49,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: Game::class, mappedBy: 'users')]
     private Collection $games;
 
+    #[ORM\Column]
+    private ?int $wallet = null;
+
     public function __construct()
     {
         $this->games = new ArrayCollection();
@@ -186,6 +189,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if ($this->games->removeElement($game)) {
             $game->removeUser($this);
         }
+
+        return $this;
+    }
+
+    public function getWallet(): ?int
+    {
+        return $this->wallet;
+    }
+
+    public function setWallet(int $wallet): static
+    {
+        $this->wallet = $wallet;
 
         return $this;
     }

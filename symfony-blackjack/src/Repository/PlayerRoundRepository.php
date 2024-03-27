@@ -21,6 +21,15 @@ class PlayerRoundRepository extends ServiceEntityRepository
         parent::__construct($registry, PlayerRound::class);
     }
 
+    public function save(PlayerRound $playerRound, $persist = true): void
+    {
+        if ($persist) {
+            $this->getEntityManager()->persist($playerRound);
+        }
+        $this->getEntityManager()->flush();
+    }
+
+
     //    /**
     //     * @return PlayerRound[] Returns an array of PlayerRound objects
     //     */

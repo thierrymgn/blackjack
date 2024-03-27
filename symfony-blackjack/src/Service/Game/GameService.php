@@ -8,31 +8,37 @@ use App\Entity\Game;
 use App\Entity\User;
 use App\Service\Round\RoundService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Form\FormFactoryInterface;
+use Psr\Log\LoggerInterface;
 
 class GameService
 {
     private EntityManagerInterface $entityManager;
     private RoundService $roundService;
+    private LoggerInterface $logger;
 
-    public function __construct(EntityManagerInterface $entityManager, RoundService $roundService)
+    public function __construct(EntityManagerInterface $entityManager, RoundService $roundService, LoggerInterface $logger)
     {
         $this->entityManager = $entityManager;
         $this->roundService = $roundService;
+        $this->logger = $logger;
     }
 
     public function createGame(User $user): Success | Error
     {
+        if ($user->getWallet() < 1) {
+            $error = new Error(['error' => 'Not enough money to create a game'], 400);
+            $this->logger->error('Game not created', ['error' => $error->getContent()]);
+            return $error;
+        }
+
         $game = new Game();
         $game->setCreationDate(new \DateTimeImmutable());
         $game->setLastUpdateDate(new \DateTimeImmutable());
         $game->addUser($user);
-        // add the dealer
         $game->setStatus('created');
-        $this->entityManager->persist($game);
-
-        $this->entityManager->flush();
-
+        $this->entityManager->getRepository(Game::class)->save($game);
+        $this->logger->info('Game created', ['game' => $game]);
+        
         $this->roundService->createRound($game);
 
         return new Success(['game' => $game], 201);
