@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Service\PlayerRound\PlayerRoundService;
+use App\Service\Round\RoundService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,10 +15,12 @@ class PlayerRoundController extends AbstractController
 {
 
     private PlayerRoundService $playerRoundService;
+    private RoundService $roundService;
 
-    public function __construct(PlayerRoundService $playerRoundService)
+    public function __construct(PlayerRoundService $playerRoundService, RoundService $roundService)
     {
         $this->playerRoundService = $playerRoundService;
+        $this->roundService = $roundService;
     }
 
     #[Route('/player-round/{uuid}/wage', name: 'start_round', methods: ['PATCH'])]
@@ -35,6 +38,8 @@ class PlayerRoundController extends AbstractController
         if ($err !== null) {
             return $this->json($err->getContent(), $err->getCode());
         }
+
+        list($round, $err) = $this->roundService->startRound($playerRound->getRound());
 
         return $this->json($playerRound, 200, [], ['groups' => ['playerRound']]);
     }

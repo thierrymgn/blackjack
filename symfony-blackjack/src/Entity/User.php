@@ -21,18 +21,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
-    #[Groups(['user', 'game'])]
+    #[Groups(['user'])]
     private ?Uuid $id;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Groups(['user', 'game'])]
+    #[Groups(['user'])]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Groups(['user', 'game'])]
+    #[Groups(['user'])]
     private array $roles = [];
 
     /**
@@ -42,15 +42,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user'])]
+    #[Groups(['user', 'game'])]
     private ?string $username = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Groups(['user', 'game'])]
+    #[Groups(['user'])]
     private ?\DateTimeInterface $creationDate = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Groups(['user', 'game'])]
+    #[Groups(['user'])]
     private ?\DateTimeInterface $lastUpdateDate = null;
 
     #[ORM\ManyToMany(targetEntity: Game::class, mappedBy: 'users')]
@@ -58,7 +58,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $games;
 
     #[ORM\Column]
-    #[Groups(['user', 'game', 'round', 'playerRound'])]
+    #[Groups(['user', 'round', 'playerRound'])]
     private ?int $wallet = null;
 
     public function __construct()

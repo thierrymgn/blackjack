@@ -3,7 +3,6 @@
 namespace App\Service\PlayerRound;
 
 use App\DTO\Response\Error;
-use App\DTO\Response\Success;
 use App\Entity\PlayerRound;
 use App\Entity\Round;
 use App\Entity\User;
@@ -11,6 +10,7 @@ use App\Form\PlayerRound\WagerType;
 use App\Repository\PlayerRoundRepository;
 use App\Repository\RoundRepository;
 use App\Service\Form\FormService;
+use App\Service\Round\RoundCardService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 
@@ -21,13 +21,15 @@ class PlayerRoundService
     private RoundRepository $roundRepository;
     private EntityManagerInterface $entityManager;
     private FormFactoryInterface $formFactory;
+    private RoundCardService $roundCardService;
 
-    public function __construct(PlayerRoundRepository $playerRoundRepository, RoundRepository $roundRepository, EntityManagerInterface $entityManager, FormFactoryInterface $formFactory)
+    public function __construct(PlayerRoundRepository $playerRoundRepository, RoundRepository $roundRepository, EntityManagerInterface $entityManager, FormFactoryInterface $formFactory, RoundCardService $roundCardService)
     {
         $this->playerRoundRepository = $playerRoundRepository;
         $this->roundRepository = $roundRepository;
         $this->entityManager = $entityManager;
         $this->formFactory = $formFactory;
+        $this->roundCardService = $roundCardService;
     }
    
     public function addNewPlayerRoundToRound(User $user, Round $round): PlayerRound
@@ -76,9 +78,6 @@ class PlayerRoundService
         $user->setLastUpdateDate(new \DateTimeImmutable());
         
         $this->entityManager->getRepository(User::class)->save($user, false);
-        
-        $globalRound = $playerRound->getRound();
-        //$this->roundService->startRound($globalRound);
 
         return [$playerRound, null];
     }
@@ -118,9 +117,10 @@ class PlayerRoundService
         if ($playerRound->getStatus() !== 'playing') {
             return [null, new Error(['error' => 'You can not hit this round', 'status' => $playerRound->getStatus()], 409)];
         }
+        $drawnCards = $this->roundCardService->drawCards($playerRound->getRound(), 1);
+        $playerRound->addToCurrentCards($drawnCards);
 
         $playerRound->setLastUpdateDate(new \DateTimeImmutable());
-        //$drawnCard = 
 
         $this->entityManager->getRepository(PlayerRound::class)->save($playerRound, false);
 

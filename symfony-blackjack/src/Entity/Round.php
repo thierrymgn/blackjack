@@ -134,6 +134,15 @@ class Round
         return $this;
     }
 
+    public function addToDealerCards(array $cards): static
+    {
+        foreach ($cards as $card) {
+            $this->dealerCards[] = $card;
+        }
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, PlayerRound>
      */

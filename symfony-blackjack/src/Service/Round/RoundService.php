@@ -2,9 +2,7 @@
 
 namespace App\Service\Round;
 
-use App\DTO\Card\CardDTO;
 use App\DTO\Response\Error;
-use App\DTO\Response\Success;
 use App\Entity\Game;
 use App\Entity\Round;
 use App\Service\PlayerRound\PlayerRoundService;
@@ -16,12 +14,14 @@ class RoundService
     private EntityManagerInterface $entityManager;
     private LoggerInterface $logger;
     private PlayerRoundService $playerRoundService;
+    private RoundCardService $roundCardService;
 
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger, PlayerRoundService $playerRoundService)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger, PlayerRoundService $playerRoundService, RoundCardService $roundCardService)
     {
         $this->entityManager = $entityManager;
         $this->logger = $logger;
         $this->playerRoundService = $playerRoundService;
+        $this->roundCardService = $roundCardService;
     }
 
     public function addNewRoundToGame(Game $game): Round
@@ -56,7 +56,7 @@ class RoundService
 
         foreach ($suits as $suit) {
             foreach ($values as $value) {
-                $deck[] = new CardDTO($suit, $value);
+                $deck[] = [$suit, $value];
             }
         }
 
@@ -65,7 +65,7 @@ class RoundService
         return $deck;
     }
 
-    public function startRound(Round $round): Success | Error
+    public function startRound(Round $round): array
     {
         if (!$this->hasAllPlayerRoundBeenWaged($round)) {
             return new Error(['error' => 'Not all player rounds have been waged'], 400);
@@ -75,7 +75,7 @@ class RoundService
 
         $this->entityManager->getRepository(Round::class)->save($round, false);
 
-        return new Success(['round' => $round], 200);
+        return [$round, null];
     }
 
     public function hasAllPlayerRoundBeenWaged(Round $round): bool
@@ -93,18 +93,18 @@ class RoundService
 
     public function setCards(Round $round): Round
     {
-        $cards = $round->getCardsLeft();
         $playerRounds = $round->getPlayerRounds();
 
         foreach ($playerRounds as $playerRound) {
-            $playerRound->setCurrentCards(array_splice($cards, 0, 2));
             $playerRound->setStatus('playing');
+            $drawnCards = $this->roundCardService->drawCards($round, 2);
+            $playerRound->addToCurrentCards($drawnCards);
             $playerRound->setLastUpdateDate(new \DateTimeImmutable());
         }
 
-        $round->setDealerCards(array_splice($cards, 0, 1));
+        $drawnCards = $this->roundCardService->drawCards($round, 1);
+        $round->addToDealerCards($drawnCards);
 
-        $round->setCardsLeft($cards);
         $round->setStatus('playing');
 
         $round->getGame()->setLastUpdateDate(new \DateTimeImmutable());

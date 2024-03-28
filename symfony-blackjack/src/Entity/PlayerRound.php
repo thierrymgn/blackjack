@@ -33,11 +33,11 @@ class PlayerRound
     private ?User $user = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['playerRound'])]
+    #[Groups(['playerRound', 'game'])]
     private array $currentCards = [];
 
     #[ORM\Column]
-    #[Groups(['playerRound'])]
+    #[Groups(['playerRound', 'game'])]
     private ?int $wager = null;
 
     #[ORM\ManyToOne(inversedBy: 'playerRounds')]
@@ -102,6 +102,17 @@ class PlayerRound
         return $this;
     }
 
+    public function addToCurrentCards(array $cards): static
+    {
+        foreach ($cards as $card) {
+            $this->currentCards[] = $card;
+        }
+
+        $this->checkStatusChange();
+
+        return $this;
+    }
+
     public function getWager(): ?int
     {
         return $this->wager;
@@ -136,5 +147,51 @@ class PlayerRound
         $this->status = $status;
 
         return $this;
+    }
+
+    public function checkStatusChange(): void
+    {
+        $score = $this->calculateScore();
+
+        if ($score > 21) {
+            $this->setStatus('busted');
+        } elseif ($score === 777) {
+            $this->setStatus('blackjack');
+        }
+    }
+
+    public function calculateScore(): int
+    {
+        $score = 0;
+        $figuresCount = 0;
+        $acesCount = 0;
+        $aceValue = 11;
+
+        foreach($this->currentCards as $card) {
+            $value = $card[1];
+            if(is_numeric($value)) {
+                $score += $value;
+            } elseif ($value === 'A') {
+                $acesCount++;
+            } else {
+                $score += 10; 
+                $figuresCount++;
+            }
+        }
+
+        for($i = 0; $i < $acesCount; $i++) {
+            if ($score + $aceValue > 21) {
+                $score += 1;
+            } else {
+                $score += $aceValue;
+            }
+        }
+
+        // if there are 2 cards in hand, and one of them is an ace, and the other one is a figure, then it's a blackjack
+        if (count($this->currentCards) === $figuresCount + $acesCount) {
+            return 777;
+        }
+
+        return $score;
     }
 }
