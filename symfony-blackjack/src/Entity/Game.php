@@ -17,7 +17,7 @@ class Game
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
-    #[Groups(['user', 'game'])]
+    #[Groups(['user', 'game', 'playerRound'])]
     private ?Uuid $id;
 
     #[ORM\Column]
@@ -29,7 +29,7 @@ class Game
     private ?\DateTimeImmutable $lastUpdateDate = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user', 'game'])]
+    #[Groups(['user', 'game', 'playerRound'])]
     private ?string $status = null;
 
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'games')]

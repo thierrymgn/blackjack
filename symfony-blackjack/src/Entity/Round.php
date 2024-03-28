@@ -35,16 +35,16 @@ class Round
     private array $cardsLeft = [];
 
     #[ORM\Column(length: 255)]
-    #[Groups(['round', 'game'])]
+    #[Groups(['round', 'game', 'playerRound'])]
     private ?string $status = null;
 
     #[ORM\ManyToOne(inversedBy: 'rounds')]
     #[ORM\JoinColumn]
-    #[Groups(['round'])]
+    #[Groups(['round', 'playerRound'])]
     private ?Game $game;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['round', 'game'])]
+    #[Groups(['round', 'game', 'playerRound'])]
     private array $dealerCards = [];
 
     #[ORM\OneToMany(targetEntity: PlayerRound::class, mappedBy: 'round', orphanRemoval: true)]
