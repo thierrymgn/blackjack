@@ -40,12 +40,18 @@ class PlayerRoundController extends AbstractController
         }
 
         list($round, $err) = $this->roundService->startRound($playerRound->getRound());
+        list($playerRoundsAreDone, $err) = $this->roundService->hasAllPlayerRoundBeenFinished($round);
+
+        if($playerRoundsAreDone) {
+            list($round, $err) = $this->roundService->drawDealerCards($round);
+            list($round, $err) = $this->roundService->distributeGains($round);
+        }
 
         return $this->json($playerRound, 200, [], ['groups' => ['playerRound']]);
     }
 
     #[Route('/player-round/{uuid}', name: 'get_round', methods: ['GET'])]
-    public function getRound(string $uuid, SerializerInterface $serializer): Response
+    public function getRound(string $uuid): Response
     {
         $user = $this->getUser();
         list($playerRound, $err) = $this->playerRoundService->getRound($user, $uuid);
@@ -65,6 +71,14 @@ class PlayerRoundController extends AbstractController
             return $this->json($err->getContent(), $err->getCode());
         }
 
+        list($round, $err) = $this->roundService->stopRound($playerRound->getRound());
+        list($playerRoundsAreDone, $err) = $this->roundService->hasAllPlayerRoundBeenFinished($round);
+
+        if($playerRoundsAreDone) {
+            list($round, $err) = $this->roundService->drawDealerCards($round);
+            list($round, $err) = $this->roundService->distributeGains($round);
+        }
+
         return $this->json($playerRound, 200, [], ['groups' => ['playerRound']]);
     }
 
@@ -77,6 +91,13 @@ class PlayerRoundController extends AbstractController
             return $this->json($err->getContent(), $err->getCode());
         }
 
+        list($round, $err) = $this->roundService->stopRound($playerRound->getRound());
+        list($playerRoundsAreDone, $err) = $this->roundService->hasAllPlayerRoundBeenFinished($round);
+
+        if($playerRoundsAreDone) {
+            list($round, $err) = $this->roundService->drawDealerCards($round);
+            list($round, $err) = $this->roundService->distributeGains($round);
+        }
         return $this->json($playerRound, 200, [], ['groups' => ['playerRound']]);
     }
 }

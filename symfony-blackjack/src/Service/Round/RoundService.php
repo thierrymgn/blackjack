@@ -99,6 +99,14 @@ class RoundService
             $playerRound->setStatus('playing');
             $drawnCards = $this->roundCardService->drawCards($round, 2);
             $playerRound->addToCurrentCards($drawnCards);
+
+            $score = $this->roundCardService->calculateScore($playerRound->getCurrentCards());
+
+            if ($score > 21) {
+                $playerRound->setStatus('busted');
+            } elseif ($score === 777) {
+                $playerRound->setStatus('blackjack');
+            }
             $playerRound->setLastUpdateDate(new \DateTimeImmutable());
         }
 
@@ -111,5 +119,84 @@ class RoundService
         $round->getGame()->setStatus('playing');
 
         return $round;
+    }
+
+    public function stopRound(Round $round): array
+    {
+        list($allPlayerRoundAreDone, $err) = $this->hasAllPlayerRoundBeenFinished($round);
+        if (!$allPlayerRoundAreDone) {
+            return [$round, null];
+        }
+
+        $round->setStatus('ended');
+        $round->setLastUpdateDate(new \DateTimeImmutable());
+
+        $this->entityManager->getRepository(Round::class)->save($round, false);
+
+        return [$round, null];
+    }
+
+    public function hasAllPlayerRoundBeenFinished(Round $round): array
+    {
+        $playerRounds = $round->getPlayerRounds();
+
+        foreach ($playerRounds as $playerRound) {
+            if($playerRound->getStatus() === 'playing') {
+                return [false, null];
+            }
+        }
+
+        return [true, null];
+    }
+
+    public function drawDealerCards(Round $round): array
+    {
+        while ($this->roundCardService->calculateScore($round->getDealerCards()) < 17) {
+            $drawnCards = $this->roundCardService->drawCards($round, 1);
+            $round->addToDealerCards($drawnCards);
+        }
+
+        $round->setLastUpdateDate(new \DateTimeImmutable());
+
+        $this->entityManager->getRepository(Round::class)->save($round, false);
+
+        return [$round, null];
+    }
+
+    public function distributeGains(Round $round): array
+    {
+        if($round->getStatus() !== 'ended') {
+            return [$round, new Error(['error' => 'The round has not ended yet'], 409)];
+        }
+
+        $dealerScore = $this->roundCardService->calculateScore($round->getDealerCards());
+        foreach ($round->getPlayerRounds() as $playerRound) {
+
+            if($playerRound->getStatus() === 'busted') {
+                $playerRound->setStatus($playerRound->getStatus() . '_lost');
+                continue;
+            }
+
+            $playerScore = $this->roundCardService->calculateScore($playerRound->getCurrentCards());
+            if($playerScore <= $dealerScore) {
+                $playerRound->setStatus($playerRound->getStatus() . '_lost');
+                continue;
+            }
+
+            $gain = $playerRound->getWager();
+
+            if($playerScore === 777) {
+                $gain = $gain * 2;
+                $playerRound->getUser()->setWallet($playerRound->getUser()->getWallet() + $gain);
+                $playerRound->setStatus($playerRound->getStatus() . '_won');
+            } else {
+                $playerRound->getUser()->setWallet($playerRound->getUser()->getWallet() + $gain);
+                $playerRound->setStatus($playerRound->getStatus() . '_won');
+            }
+
+            $playerRound->setLastUpdateDate(new \DateTimeImmutable());
+        }
+
+        return [$round, null];
     }
 }

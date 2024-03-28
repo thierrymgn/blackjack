@@ -111,6 +111,7 @@ class PlayerRoundService
         }
 
         if ($playerRound->getRound()->getStatus() !== 'playing') {
+            dump($playerRound->getRound()->getStatus());die;
             return [null, new Error(['error' => 'The round has not started yet'], 409)];
         }
 
@@ -119,6 +120,14 @@ class PlayerRoundService
         }
         $drawnCards = $this->roundCardService->drawCards($playerRound->getRound(), 1);
         $playerRound->addToCurrentCards($drawnCards);
+
+        $score = $this->roundCardService->calculateScore($playerRound->getCurrentCards());
+
+        if ($score > 21) {
+            $playerRound->setStatus('busted');
+        } elseif ($score === 777) {
+            $playerRound->setStatus('blackjack');
+        }
 
         $playerRound->setLastUpdateDate(new \DateTimeImmutable());
 
