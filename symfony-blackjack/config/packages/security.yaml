@@ -17,14 +17,13 @@ security:
                 check_path: /login_check
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
-
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
         api:
             pattern:   ^/
             stateless: true
             jwt: ~
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
         main:
             lazy: true
             provider: app_user_provider

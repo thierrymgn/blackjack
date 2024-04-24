@@ -5,7 +5,7 @@ export const actions = {
         const data = await request.formData();
         const formJSON  = Object.fromEntries(data.entries());
 
-        await fetch('http://symfony-blackjack:8000/login_check', {
+        return await fetch('http://symfony-blackjack:8000/login_check', {
             method: 'POST',
             body: JSON.stringify(formJSON),
             headers: {

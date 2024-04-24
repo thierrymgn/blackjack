@@ -1,26 +1,27 @@
 import { writable } from 'svelte/store';
-import { get, type Writable } from 'svelte/store';
+import type { Subscriber, Writable } from 'svelte/store';
 import SecurityStore from './define';
 
-export default class SecurityStoreState {
+class SecurityStoreState {
     private store: Writable<SecurityStore>;
 
     public constructor() {
         this.store = writable<SecurityStore>(new SecurityStore());
     }
 
-    public getStore(): Writable<SecurityStore> {
-        return this.store;
-    }
-
-    public getValues(): SecurityStore {
-        return get(this.store);
-    }
+    subscribe(run: Subscriber<SecurityStore>) {
+		return this.store.subscribe(run);
+	}
 
     public logout(): void {
         this.store.update((store) => {
+            if(store === null) {
+                throw("Security store is null.");
+            }
             store.clearToken()
             return store;
         });
     }
 }
+
+export const securityStoreState = new SecurityStoreState();
