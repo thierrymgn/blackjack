@@ -6,9 +6,9 @@
             <a class="text-white" href="/play">Accueil</a>
         </div>
         <div class="flex items-center justify-end flex-shrink-0 w-1/3">
-            <a class="text-white mx-3" href="/play/games">Mes parties</a>
-            <a class="text-white mx-3" href="/play/profile">Mon profil</a>
-            <a class="text-white mx-3" href="/play/logout">Se déconnecter</a>
+            <a class="text-white mx-3" href="/play/my-games">Recent games</a>
+            <a class="text-white mx-3" href="/play/profile">My profile</a>
+            <a class="text-white mx-3 bg-destructive p-2 rounded" href="/play/logout">Logout</a>
         </div>
 
     </div>
