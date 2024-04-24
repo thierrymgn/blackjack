@@ -5,8 +5,6 @@ export const actions = {
         const data = await request.formData();
         const formJSON  = Object.fromEntries(data.entries());
 
-        console.log(formJSON);
-
         await fetch('http://symfony-blackjack:8000/login_check', {
             method: 'POST',
             body: JSON.stringify(formJSON),
@@ -14,14 +12,20 @@ export const actions = {
                 'Content-Type': 'application/json'
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if(response.status !== 200) {
+                throw("Invalid credentials. Please try again.");
+            }
+            return response.json();
+        })
         .then(data => {
             const token: string = data.token;
             cookies.set('token', token, { path: '/', secure: true, httpOnly: true});
             redirect(302, '/play');
         })
-        .catch(error => {
-            console.log(error);
-        });
+        .catch(() => {
+            return {response: null, error: true};
+        })
+        
     }
 } satisfies Actions;

@@ -18,15 +18,13 @@ class PlayerRoundService
 {
 
     private PlayerRoundRepository $playerRoundRepository;
-    private RoundRepository $roundRepository;
     private EntityManagerInterface $entityManager;
     private FormFactoryInterface $formFactory;
     private RoundCardService $roundCardService;
 
-    public function __construct(PlayerRoundRepository $playerRoundRepository, RoundRepository $roundRepository, EntityManagerInterface $entityManager, FormFactoryInterface $formFactory, RoundCardService $roundCardService)
+    public function __construct(PlayerRoundRepository $playerRoundRepository, EntityManagerInterface $entityManager, FormFactoryInterface $formFactory, RoundCardService $roundCardService)
     {
         $this->playerRoundRepository = $playerRoundRepository;
-        $this->roundRepository = $roundRepository;
         $this->entityManager = $entityManager;
         $this->formFactory = $formFactory;
         $this->roundCardService = $roundCardService;
@@ -111,7 +109,6 @@ class PlayerRoundService
         }
 
         if ($playerRound->getRound()->getStatus() !== 'playing') {
-            dump($playerRound->getRound()->getStatus());die;
             return [null, new Error(['error' => 'The round has not started yet'], 409)];
         }
 
