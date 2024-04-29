@@ -153,7 +153,7 @@ class GameStoreState {
             game = value.current;
         });
 
-        game = await fetch('http://symfony-blackjack:8000/game/'+id+'/newround', {
+        game = await fetch('http://127.0.0.1:8888/game/'+id+'/newround', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -177,6 +177,31 @@ class GameStoreState {
         this.setCurrent(game);
 
         return game;
+    }
+
+    public async deleteGame(id:string, token:string): Promise<any> {
+        let game = null;
+        this.store.subscribe((value: any|null) => {
+            game = value.current;
+        });
+
+        return await fetch('http://127.0.0.1:8888/game/'+id+'', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .then(response => {
+                if(response.status !== 204) {
+                    throw("Invalid credentials. Please try again.");
+                }
+                this.setCurrent(null);
+                return true;
+            })
+            .catch(() => {
+                return null;
+            });
     }
     
 }

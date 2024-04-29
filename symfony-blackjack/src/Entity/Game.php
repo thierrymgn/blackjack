@@ -37,7 +37,7 @@ class Game
     private Collection $users;
 
     #[ORM\OneToMany(targetEntity: Round::class, mappedBy: 'game', orphanRemoval: true)]
-    #[Groups(['game'])]
+    #[Groups(['game', 'user'])]
     private Collection $rounds;
 
     public function __construct()

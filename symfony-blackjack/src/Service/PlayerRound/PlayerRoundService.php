@@ -160,4 +160,45 @@ class PlayerRoundService
 
         return [$playerRound, null];
     }
+
+    public function getPlayerRoundStatus(PlayerRound $playerRound, int $dealerScore): string
+    {
+        $playerScore = $this->roundCardService->calculateScore($playerRound->getCurrentCards());
+
+        if($playerScore > 21) {
+            return 'busted';
+        }
+
+        if($playerScore === $dealerScore) {
+            return 'draw';
+        }
+
+        if($playerScore === 777) {
+            return 'blackjack';
+        }
+
+        if($playerScore > $dealerScore) {
+            return 'won';
+        }
+        
+        return 'lost';
+    }
+
+    public function calculateGainsForPlayerRound(PlayerRound $playerRound): int
+    {
+        $wager = $playerRound->getWager();
+        if($playerRound->getStatus() === 'won') {
+            return $wager * 2;
+        }
+
+        if($playerRound->getStatus() === 'blackjack') {
+            return round($wager * 2.5);
+        }
+
+        if($playerRound->getStatus() === 'draw') {
+            return $wager;
+        }
+
+        return 0;
+    }
 }

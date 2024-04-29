@@ -95,7 +95,7 @@ class GameService
             return [null, $error];
         }
 
-        if($game->getStatus() === 'playing') {
+        if($game->getStatus() !== 'playing') {
             return [null, new Error(['error' => 'Game not started'], 409)];
         }
 

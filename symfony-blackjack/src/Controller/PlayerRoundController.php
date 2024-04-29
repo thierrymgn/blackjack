@@ -92,9 +92,8 @@ class PlayerRoundController extends AbstractController
         }
 
         list($round, $err) = $this->roundService->stopRound($playerRound->getRound());
-        list($playerRoundsAreDone, $err) = $this->roundService->hasAllPlayerRoundBeenFinished($round);
 
-        if($playerRoundsAreDone) {
+        if($round->getStatus() === 'ended') {
             list($round, $err) = $this->roundService->drawDealerCards($round);
             list($round, $err) = $this->roundService->distributeGains($round);
         }

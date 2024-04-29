@@ -10,6 +10,10 @@ security:
                 class: App\Entity\User
                 property: username
     firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+    
         login:
             pattern: ^/login
             stateless: true
@@ -17,9 +21,6 @@ security:
                 check_path: /login_check
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
         api:
             pattern:   ^/
             stateless: true
@@ -27,13 +28,11 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/user,  roles: PUBLIC_ACCESS, methods: [POST] }
-        - { path: ^/,      roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:

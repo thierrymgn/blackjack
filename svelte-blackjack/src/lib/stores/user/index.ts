@@ -24,9 +24,9 @@ class UserStoreState {
             return null;
         }
 
-        if(user !== null) {
-            return user;
-        }
+        // if(user !== null) {
+        //     return user;
+        // }
 
         user = await fetch('http://symfony-blackjack:8000/user/profile', {
                 method: 'GET',

@@ -35,7 +35,7 @@ class Round
     private array $cardsLeft = [];
 
     #[ORM\Column(length: 255)]
-    #[Groups(['round', 'game', 'playerRound'])]
+    #[Groups(['round', 'game', 'playerRound', 'user'])]
     private ?string $status = null;
 
     #[ORM\ManyToOne(inversedBy: 'rounds')]

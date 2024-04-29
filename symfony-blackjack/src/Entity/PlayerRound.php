@@ -49,6 +49,10 @@ class PlayerRound
     #[Groups(['game', 'round', 'playerRound'])]
     private ?string $status = null;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['game', 'round', 'playerRound'])]
+    private ?int $gains = null;
+
     public function getId(): ?Uuid
     {
         return $this->id;
@@ -143,6 +147,18 @@ class PlayerRound
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getGains(): ?int
+    {
+        return $this->gains;
+    }
+
+    public function setGains(?int $gains): static
+    {
+        $this->gains = $gains;
 
         return $this;
     }    

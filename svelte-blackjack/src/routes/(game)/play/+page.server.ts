@@ -1,14 +1,10 @@
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, cookies }) => {
-    const token = cookies.get('token');
-    if(token === undefined) {
+export const load: PageServerLoad = async ({ parent }) => {
+    const {token} = await parent();
+    if(token) {
         return {
-            status: 302,
-            headers: {
-                location: '/'
-            }
-        };
+            token: token
+        }
     }
-    return { token: token }
 };

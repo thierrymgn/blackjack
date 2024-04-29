@@ -171,28 +171,12 @@ class RoundService
 
         $dealerScore = $this->roundCardService->calculateScore($round->getDealerCards());
         foreach ($round->getPlayerRounds() as $playerRound) {
+            $playerRoundStatus = $this->playerRoundService->getPlayerRoundStatus($playerRound, $dealerScore);
+            $playerRound->setStatus($playerRoundStatus);
 
-            if($playerRound->getStatus() === 'busted') {
-                $playerRound->setStatus($playerRound->getStatus() . '_lost');
-                continue;
-            }
-
-            $playerScore = $this->roundCardService->calculateScore($playerRound->getCurrentCards());
-            if($playerScore <= $dealerScore) {
-                $playerRound->setStatus($playerRound->getStatus() . '_lost');
-                continue;
-            }
-
-            $gain = $playerRound->getWager();
-
-            if($playerScore === 777) {
-                $gain = $gain * 2;
-                $playerRound->getUser()->setWallet($playerRound->getUser()->getWallet() + $gain);
-                $playerRound->setStatus($playerRound->getStatus() . '_won');
-            } else {
-                $playerRound->getUser()->setWallet($playerRound->getUser()->getWallet() + $gain);
-                $playerRound->setStatus($playerRound->getStatus() . '_won');
-            }
+            $gain = $this->playerRoundService->calculateGainsForPlayerRound($playerRound);
+            $playerRound->setGains($gain);
+            $playerRound->getUser()->setWallet($playerRound->getUser()->getWallet() + $gain);
 
             $playerRound->setLastUpdateDate(new \DateTimeImmutable());
         }
