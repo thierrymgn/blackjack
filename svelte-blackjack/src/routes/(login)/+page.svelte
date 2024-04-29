@@ -9,7 +9,8 @@
 
         return async ({result, update}) => {
             await update();
-            if(result.data.error !== undefined && result.data.error === true) {
+
+            if(result.data !== undefined && result.data.error !== undefined && result.data.error === true) {
                 displayAuthError = true;
             }else{
 

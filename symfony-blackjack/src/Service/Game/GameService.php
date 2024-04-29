@@ -68,6 +68,41 @@ class GameService
         return [$game, null];
     }
 
+    public function stopGame(User $user, string $gameId): array
+    {
+        list($game, $error) = $this->getGame($user, $gameId);
+
+        if (!empty($error)) {
+            return [null, $error];
+        }
+
+        if($game->getStatus() === 'stopped') {
+            return [null, new Error(['error' => 'Game already stopped'], 409)];
+        }
+
+        $game->setStatus('stopped');
+        $game->setLastUpdateDate(new \DateTimeImmutable());
+        $this->entityManager->getRepository(Game::class)->save($game);
+
+        return [$game, null];
+    }
+
+    public function addRoundToGame(User $user, string $gameId): array
+    {
+        list($game, $error) = $this->getGame($user, $gameId);
+
+        if (!empty($error)) {
+            return [null, $error];
+        }
+
+        if($game->getStatus() === 'playing') {
+            return [null, new Error(['error' => 'Game not started'], 409)];
+        }
+
+        $this->roundService->addNewRoundToGame($game);
+        return [$game, null];
+    }
+
     public function deleteGame(User $user, string $gameId): array
     {
         $game = $this->entityManager->getRepository(Game::class)->findOneBy(['id' => $gameId]);

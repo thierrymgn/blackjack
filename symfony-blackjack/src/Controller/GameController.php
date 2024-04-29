@@ -58,6 +58,32 @@ class GameController extends AbstractController
         return $this->json($game, 200, [], ['groups' => ['game']]);
     }
 
+    #[Route('/game/{gameId}/stop', name: 'stop_game', methods: ['PATCH'])]
+    public function stopGame(string $gameId): JsonResponse
+    {
+        $user = $this->getUser();
+        list($game, $err) = $this->gameService->stopGame($user, $gameId);
+
+        if ($err !== null) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
+
+        return $this->json($game, 200, [], ['groups' => ['game']]);
+    }
+
+    #[Route('/game/{gameId}/newround', name: 'add_round_to_game', methods: ['PATCH'])]
+    public function addRoundToGame(string $gameId): JsonResponse
+    {
+        $user = $this->getUser();
+        list($game, $err) = $this->gameService->addRoundToGame($user, $gameId);
+
+        if ($err !== null) {
+            return $this->json($err->getContent(), $err->getCode());
+        }
+
+        return $this->json($game, 200, [], ['groups' => ['game']]);
+    }
+
     #[Route('/game/{gameId}', name: 'delete_game', methods: ['DELETE'])]
     public function deleteGame(string $gameId): Response
     {

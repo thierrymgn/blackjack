@@ -1,20 +1,21 @@
-import { userStoreState } from '$lib/stores';
-import type { Actions } from '@sveltejs/kit';
+import { securityStoreState, userStoreState } from '$lib/stores';
+import { redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import UserStore from '$lib/stores/user/define';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
     const token = cookies.get('token');
     if(token === undefined) {
-        return {
-            status: 302,
-            headers: {
-                location: '/'
-            }
-        };
+        securityStoreState.logout();
+        redirect(302, '/');
     }
 
     const response = await userStoreState.fetchUser(token);
+
+    if(response === null) {
+        securityStoreState.logout();
+        redirect(302, '/');
+    }
 
     return { ...response }
 };
@@ -39,7 +40,6 @@ export const actions = {
             }
         })
         .then(response => {
-            console.log(response);
             if(response.status !== 200) {
                 throw("Invalid credentials. Please try again.");
             }
