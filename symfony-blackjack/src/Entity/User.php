@@ -18,11 +18,9 @@ use Symfony\Component\Serializer\Annotation\Ignore;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\Column(type: UuidType::NAME, unique: true)]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    #[ORM\Column(unique: true)]
     #[Groups(['user'])]
-    private ?Uuid $id;
+    private string $id;
 
     #[ORM\Column(length: 180, unique: true)]
     #[Groups(['user'])]
@@ -53,20 +51,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user'])]
     private ?\DateTimeInterface $lastUpdateDate = null;
 
-    #[ORM\ManyToMany(targetEntity: Game::class, mappedBy: 'users')]
-    #[Groups(['user'])]
-    private Collection $games;
-
     #[ORM\Column]
     #[Groups(['user', 'round', 'playerRound'])]
     private ?int $wallet = null;
 
     public function __construct()
     {
-        $this->games = new ArrayCollection();
+        $this->id = Uuid::v4()->toRfc4122();
     }
 
-    public function getId(): ?Uuid
+    public function getId(): string
     {
         return $this->id;
     }
@@ -169,33 +163,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastUpdateDate(\DateTimeInterface $lastUpdateDate): static
     {
         $this->lastUpdateDate = $lastUpdateDate;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Game>
-     */
-    public function getGames(): Collection
-    {
-        return $this->games;
-    }
-
-    public function addGame(Game $game): static
-    {
-        if (!$this->games->contains($game)) {
-            $this->games->add($game);
-            $game->addUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeGame(Game $game): static
-    {
-        if ($this->games->removeElement($game)) {
-            $game->removeUser($this);
-        }
 
         return $this;
     }

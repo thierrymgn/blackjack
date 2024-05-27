@@ -11,7 +11,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20240429150456 extends AbstractMigration
+final class Version20240527223540 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -21,6 +21,10 @@ final class Version20240429150456 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql('CREATE TABLE user (id VARCHAR(255) NOT NULL, email VARCHAR(180) NOT NULL, roles CLOB NOT NULL --(DC2Type:json)
+        , password VARCHAR(255) NOT NULL, username VARCHAR(255) NOT NULL, creation_date DATETIME NOT NULL, last_update_date DATETIME NOT NULL, wallet INTEGER NOT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_8D93D649E7927C74 ON user (email)');
+
         $admin = new User();
         $admin->setEmail('admin@gmail.com');
         $admin->setRoles(['ROLE_ADMIN']);
@@ -32,7 +36,7 @@ final class Version20240429150456 extends AbstractMigration
 
 
         $this->addSql('INSERT INTO user (id, email, roles, password, username, wallet, creation_date, last_update_date) VALUES (:id, :email, :roles, :password, :username, :wallet, :creation_date, :last_update_date)', [
-            'id' => 'fbff7b8d-d51c-418c-ae49-c2d09341011a',
+            'id' => $admin->getId(),
             'email' => $admin->getEmail(),
             'roles' => json_encode($admin->getRoles()),
             'password' => $admin->getPassword(),
@@ -46,5 +50,6 @@ final class Version20240429150456 extends AbstractMigration
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
+        $this->addSql('DROP TABLE user');
     }
 }

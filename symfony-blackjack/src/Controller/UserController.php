@@ -2,11 +2,10 @@
 
 namespace App\Controller;
 
-use App\DTO\Response\Error;
-use App\Service\User\UserService;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 class UserController extends AbstractController
@@ -19,119 +18,108 @@ class UserController extends AbstractController
         $this->userService = $userService;
     }
 
-    #[Route('/user', name: 'get_user_list', methods: ['GET'])]
-    public function getUserList(Request $request): JsonResponse
+    #[Route('/user', name: 'get_list_of_users', methods: ['GET'])]
+    public function getListOfUsers(Request $request): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $limit = $request->query->get('limit', 12);
         $page = $request->query->get('page', 0);
 
         list($users, $err) = $this->userService->getPaginatedUserList($limit, $page);
-
-        if($err instanceof Error) {
-            return $this->json($err->getContent(), $err->getCode());
+        if($err instanceof \Error) {
+            return $this->json($err->getMessage(), $err->getCode());
         }
 
         return $this->json($users, 200, [], ['groups' => 'user']);
     }
 
-    #[Route('/user', name: 'post_user', methods: ['POST'])]
-    public function postUser(Request $request): JsonResponse
+    #[Route('/user', name: 'create_user', methods: ['POST'])]
+    public function createUser(Request $request): Response
     {
-        $payload = json_decode($request->getContent(), true);
+        $data = json_decode($request->getContent(), true);
 
-        if(null === $payload) {
-            return $this->json(['error' => 'Invalid payload'], 400);
-        }
-
-        list($user, $err) = $this->userService->createUser($payload);
-
-        if($err instanceof Error) {
-            return $this->json($err->getContent(), $err->getCode());
+        list($user, $err) = $this->userService->createUser($data);
+        if($err instanceof \Error) {
+            return $this->json(json_decode($err->getMessage(), true), $err->getCode());
         }
 
         return $this->json($user, 201, [], ['groups' => 'user']);
     }
 
-    #[Route('/user/profile', name: 'get_current_user_infos', methods: ['GET'])]
-    public function getCurrentUserInfos(Request $request): JsonResponse
+    #[Route('/user/profile', name: 'get_current_user', methods: ['GET'])]
+    public function geCurrenttUser(): Response
     {
-        return $this->json($this->getUser(), 200, [], ['groups' => 'user']);
-    }
-
-    #[Route('/user/{uuid}', name: 'get_user_infos', methods: ['GET'])]
-    public function getUserInfos(string $uuid): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
-        list($user, $err) = $this->userService->getUserByUuid($uuid);
-
-        if($err instanceof Error) {
-            return $this->json($err->getContent(), $err->getCode());
+        list($user, $err) = $this->userService->getUser($this->getUser()->getId());
+        if($err instanceof \Error) {
+            return $this->json('User not found', 404);
         }
 
         return $this->json($user, 200, [], ['groups' => 'user']);
     }
 
-    #[Route('/user/profile', name: 'patch_current_user_infos', methods: ['PATCH'])]
-    public function patchCurrentUserInfos(Request $request): JsonResponse
+    #[Route('/user/profile', name: 'update_current_user', methods: ['PATCH'])]
+    public function updateCurrentUser(Request $request): Response
     {
-        $payload = json_decode($request->getContent(), true);
-        $user = $this->getUser();
+        $data = json_decode($request->getContent(), true);
 
-        list($user, $err) = $this->userService->updateUser($user, $payload);
-
-        if($err instanceof Error) {
-            return $this->json($err->getContent(), $err->getCode());
+        list($user, $err) = $this->userService->updateUser($this->getUser()->getId(), $data);
+        if($err instanceof \Error) {
+            return $this->json(json_decode($err->getMessage(), true), $err->getCode());
         }
 
         return $this->json($user, 200, [], ['groups' => 'user']);
     }
 
-    #[Route('/user/{uuid}', name: 'patch_user_infos', methods: ['PATCH'])]
-    public function patchUserInfos(Request $request, string $uuid): JsonResponse
+    #[Route('/user/profile', name: 'delete_current_user', methods: ['DELETE'])]
+    public function deleteCurrentUser(): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
-        list($user, $err) = $this->userService->getUserByUuid($uuid);
-        if($err instanceof Error) {
-            return $this->json($err->getContent(), $err->getCode());
-        }
-
-        $payload = json_decode($request->getContent(), true);
-
-        list($user, $err) = $this->userService->updateUser($user, $payload);
-        if($err instanceof Error) {
-            return $this->json($err->getContent(), $err->getCode());
-        }
-
-        return $this->json($user, 200, [], ['groups' => 'user']);
-    }
-
-    #[Route('/user/profile', name: 'delete_current_user_infos', methods: ['DELETE'])]
-    public function deleteCurrentUserInfos(): JsonResponse
-    {
-        $user = $this->getUser();
-        list($user, $err) = $this->userService->deleteUser($user);
-
-        if($err instanceof Error) {
-            return $this->json($err->getContent(), $err->getCode());
+        list($_, $err) = $this->userService->deleteUser($this->getUser()->getId());
+        if($err instanceof \Error) {
+            return $this->json(json_decode($err->getMessage(), true), $err->getCode());
         }
 
         return $this->json([], 204);
     }
 
-    #[Route('/user/{uuid}', name: 'delete_user_infos', methods: ['DELETE'])]
-    public function deleteUserInfos(Request $request, string $uuid): JsonResponse
+    #[Route('/user/{id}', name: 'get_user_by_uuid', methods: ['GET'])]
+    public function getUserByUuid(string $id): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        list($user, $err) = $this->userService->getUserByUuid($uuid);
-        if($err instanceof Error) {
-            return $this->json($err->getContent(), $err->getCode());
+        list($user, $err) = $this->userService->getUser($id);
+        if($err instanceof \Error) {
+            return $this->json(json_decode($err->getMessage(), true), $err->getCode());
         }
-        
-        list($user, $err) = $this->userService->deleteUser($user);
+
+        return $this->json($user, 200, [], ['groups' => 'user']);
+    }
+
+    #[Route('/user/{id}', name: 'update_user_by_uuid', methods: ['PATCH'])]
+    public function updateUserByUuid(string $id, Request $request): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $data = json_decode($request->getContent(), true);
+
+        list($user, $err) = $this->userService->updateUser($id, $data);
+        if($err instanceof \Error) {
+            return $this->json(json_decode($err->getMessage(), true), $err->getCode());
+        }
+
+        return $this->json($user, 200, [], ['groups' => 'user']);
+    }
+
+    #[Route('/user/{id}', name: 'delete_user_by_uuid', methods: ['DELETE'])]
+    public function deleteUserByUuid(string $id): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        list($_, $err) = $this->userService->deleteUser($id);
+        if($err instanceof \Error) {
+            return $this->json(json_decode($err->getMessage(), true), $err->getCode());
+        }
+
         return $this->json([], 204);
     }
 }
