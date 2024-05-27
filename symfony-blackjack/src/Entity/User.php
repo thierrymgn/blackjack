@@ -55,9 +55,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user', 'round', 'playerRound'])]
     private ?int $wallet = null;
 
+    #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $games;
+
     public function __construct()
     {
         $this->id = Uuid::v4()->toRfc4122();
+        $this->games = new ArrayCollection();
     }
 
     public function getId(): string
@@ -175,6 +179,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setWallet(int $wallet): static
     {
         $this->wallet = $wallet;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Game>
+     */
+    public function getGames(): Collection
+    {
+        return $this->games;
+    }
+
+    public function addGame(Game $game): static
+    {
+        if (!$this->games->contains($game)) {
+            $this->games->add($game);
+            $game->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGame(Game $game): static
+    {
+        if ($this->games->removeElement($game)) {
+            // set the owning side to null (unless already changed)
+            if ($game->getUser() === $this) {
+                $game->setUser(null);
+            }
+        }
 
         return $this;
     }
