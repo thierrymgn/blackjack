@@ -7,6 +7,8 @@
   - [Installation du projet](#installation-du-projet)
   - [Règles du blackjack](#règles-du-blackjack)
   - [Fonctionnalités](#fonctionnalités)
+    - [Security](#security)
+      - [login](#login)
     - [UserController](#usercontroller)
       - [getUserList](#getuserlist)
       - [postUser](#postuser)
@@ -62,6 +64,24 @@ Le blackjack est un jeu de cartes dans lesquels 1 ou plusieurs joueurs affronten
    * si un joueur a 2 cartes, dont un as et une tête (valet, dame ou roi), il a ce qu'on appelle un blackjack. Un blackjack bat tous les autres scores et rapportent 2 fois les gains misés
 
 ## Fonctionnalités
+
+### Security
+
+#### login
+
+ * url : `/login_check`
+ * method : `POST`
+
+**Description :**
+
+Route permettant à un utilisateur de se connecter. Le payload à envoyer doit correspondre à : 
+
+```json
+{
+    "username": "",
+    "password": ""
+}
+```
 
 ### UserController
 
