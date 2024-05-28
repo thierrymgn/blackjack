@@ -5,8 +5,8 @@ namespace App\Entity;
 use App\Repository\GameRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
@@ -14,63 +14,50 @@ use Symfony\Component\Uid\Uuid;
 class Game
 {
     #[ORM\Id]
-    #[ORM\Column(type: UuidType::NAME, unique: true)]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
-    #[Groups(['user', 'game', 'playerRound'])]
-    private ?Uuid $id;
-
     #[ORM\Column]
-    #[Groups(['user', 'game'])]
-    private ?\DateTimeImmutable $creationDate = null;
+    #[Groups(['user', 'game', 'turn'])]
+    private string $id;
 
-    #[ORM\Column]
-    #[Groups(['user', 'game'])]
-    private ?\DateTimeImmutable $lastUpdateDate = null;
+    #[ORM\ManyToOne(inversedBy: 'games')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['user', 'game', 'turn'])]
+    private ?User $user = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user', 'game', 'playerRound'])]
+    #[Groups([ 'game', 'turn'])]
     private ?string $status = null;
 
-    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'games')]
-    #[Groups(['game'])]
-    private Collection $users;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups([ 'game', 'turn'])]
+    private ?\DateTimeInterface $dateCreation = null;
 
-    #[ORM\OneToMany(targetEntity: Round::class, mappedBy: 'game', orphanRemoval: true)]
-    #[Groups(['game', 'user'])]
-    private Collection $rounds;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups([ 'game', 'turn'])]
+    private ?\DateTimeInterface $lastUpdateDate = null;
+
+    #[ORM\OneToMany(targetEntity: Turn::class, mappedBy: 'game')]
+    #[Groups([ 'game'])]
+    private Collection $turns;
 
     public function __construct()
     {
-        $this->users = new ArrayCollection();
-        $this->rounds = new ArrayCollection();
+        $this->id = Uuid::v4()->toRfc4122();
+        $this->turns = new ArrayCollection();
     }
 
-    public function getId(): ?Uuid
+    public function getId(): ?string
     {
         return $this->id;
     }
 
-    public function getCreationDate(): ?\DateTimeImmutable
+    public function getUser(): ?User
     {
-        return $this->creationDate;
+        return $this->user;
     }
 
-    public function setCreationDate(\DateTimeImmutable $creationDate): static
+    public function setUser(?User $user): static
     {
-        $this->creationDate = $creationDate;
-
-        return $this;
-    }
-
-    public function getLastUpdateDate(): ?\DateTimeImmutable
-    {
-        return $this->lastUpdateDate;
-    }
-
-    public function setLastUpdateDate(\DateTimeImmutable $lastUpdateDate): static
-    {
-        $this->lastUpdateDate = $lastUpdateDate;
+        $this->user = $user;
 
         return $this;
     }
@@ -87,54 +74,54 @@ class Game
         return $this;
     }
 
-    /**
-     * @return Collection<int, User>
-     */
-    public function getUsers(): Collection
+    public function getDateCreation(): ?\DateTimeInterface
     {
-        return $this->users;
+        return $this->dateCreation;
     }
 
-    public function addUser(User $user): static
+    public function setDateCreation(\DateTimeInterface $dateCreation): static
     {
-        if (!$this->users->contains($user)) {
-            $this->users->add($user);
+        $this->dateCreation = $dateCreation;
+
+        return $this;
+    }
+
+    public function getLastUpdateDate(): ?\DateTimeInterface
+    {
+        return $this->lastUpdateDate;
+    }
+
+    public function setLastUpdateDate(\DateTimeInterface $lastUpdateDate): static
+    {
+        $this->lastUpdateDate = $lastUpdateDate;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Turn>
+     */
+    public function getTurns(): Collection
+    {
+        return $this->turns;
+    }
+
+    public function addTurn(Turn $turn): static
+    {
+        if (!$this->turns->contains($turn)) {
+            $this->turns->add($turn);
+            $turn->setGame($this);
         }
 
         return $this;
     }
 
-    public function removeUser(User $user): static
+    public function removeTurn(Turn $turn): static
     {
-        $this->users->removeElement($user);
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Round>
-     */
-    public function getRounds(): Collection
-    {
-        return $this->rounds;
-    }
-
-    public function addRound(Round $round): static
-    {
-        if (!$this->rounds->contains($round)) {
-            $this->rounds->add($round);
-            $round->setGame($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRound(Round $round): static
-    {
-        if ($this->rounds->removeElement($round)) {
+        if ($this->turns->removeElement($turn)) {
             // set the owning side to null (unless already changed)
-            if ($round->getGame() === $this) {
-                $round->setGame(null);
+            if ($turn->getGame() === $this) {
+                $turn->setGame(null);
             }
         }
 

@@ -18,11 +18,9 @@ use Symfony\Component\Serializer\Annotation\Ignore;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\Column(type: UuidType::NAME, unique: true)]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    #[ORM\Column(unique: true)]
     #[Groups(['user'])]
-    private ?Uuid $id;
+    private string $id;
 
     #[ORM\Column(length: 180, unique: true)]
     #[Groups(['user'])]
@@ -53,20 +51,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user'])]
     private ?\DateTimeInterface $lastUpdateDate = null;
 
-    #[ORM\ManyToMany(targetEntity: Game::class, mappedBy: 'users')]
-    #[Groups(['user'])]
-    private Collection $games;
-
     #[ORM\Column]
-    #[Groups(['user', 'round', 'playerRound'])]
+    #[Groups(['user', 'game', 'turn'])]
     private ?int $wallet = null;
+
+    #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $games;
 
     public function __construct()
     {
+        $this->id = Uuid::v4()->toRfc4122();
         $this->games = new ArrayCollection();
     }
 
-    public function getId(): ?Uuid
+    public function getId(): string
     {
         return $this->id;
     }
@@ -173,6 +171,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getWallet(): ?int
+    {
+        return $this->wallet;
+    }
+
+    public function setWallet(int $wallet): static
+    {
+        $this->wallet = $wallet;
+
+        return $this;
+    }
+
+    public function addToWallet(int $amount): static
+    {
+        $this->wallet += $amount;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Game>
      */
@@ -185,7 +202,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->games->contains($game)) {
             $this->games->add($game);
-            $game->addUser($this);
+            $game->setUser($this);
         }
 
         return $this;
@@ -194,20 +211,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeGame(Game $game): static
     {
         if ($this->games->removeElement($game)) {
-            $game->removeUser($this);
+            // set the owning side to null (unless already changed)
+            if ($game->getUser() === $this) {
+                $game->setUser(null);
+            }
         }
-
-        return $this;
-    }
-
-    public function getWallet(): ?int
-    {
-        return $this->wallet;
-    }
-
-    public function setWallet(int $wallet): static
-    {
-        $this->wallet = $wallet;
 
         return $this;
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\Form;
+namespace App\Service;
 
 use Symfony\Component\Form\FormInterface;
 

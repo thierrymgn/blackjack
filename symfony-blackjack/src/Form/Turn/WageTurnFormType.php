@@ -1,28 +1,23 @@
 <?php
 
-namespace App\Form\PlayerRound;
+namespace App\Form\Turn;
 
-use App\Entity\PlayerRound;
+use App\Entity\Turn;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\LessThanOrEqual;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Positive;
 
-class WagerType extends AbstractType
+class WageTurnFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $currentWallet = $options['currentWallet'];
         $builder
             ->add('wager', NumberType::class, [
                 'required' => true,
                 'constraints' => [
-                    new NotBlank(),
-                    new Positive(),
-                    new LessThanOrEqual($currentWallet),
+                    new \Symfony\Component\Validator\Constraints\NotBlank(),
+                    new \Symfony\Component\Validator\Constraints\GreaterThanOrEqual(10),
                 ]
             ])
         ;
@@ -31,10 +26,8 @@ class WagerType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'currentWallet' => 'currentWallet',
+            'data_class' => Turn::class,
             'csrf_protection' => false,
-            'data_class' => PlayerRound::class,
-
         ]);
     }
 }

@@ -29,7 +29,6 @@ class GameRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
     }
 
-
     //    /**
     //     * @return Game[] Returns an array of Game objects
     //     */

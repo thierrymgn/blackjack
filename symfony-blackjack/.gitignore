@@ -7,6 +7,7 @@
 /public/bundles/
 /var/cache/
 /var/log/
+/var/data.db
 /vendor/
 ###< symfony/framework-bundle ###
 
