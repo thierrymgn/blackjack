@@ -183,6 +183,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function addToWallet(int $amount): static
+    {
+        $this->wallet += $amount;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Game>
      */

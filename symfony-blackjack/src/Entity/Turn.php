@@ -29,14 +29,16 @@ class Turn
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $lastUpdateDate = null;
 
-    #[ORM\Column(type: Types::JSON)]
-    private array $playerHand = [];
-
-    #[ORM\Column(type: Types::JSON)]
-    private array $dealerHand = [];
-
     #[ORM\Column(nullable: true)]
     private ?int $wager = null;
+
+    #[ORM\OneToOne(inversedBy: 'turn', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Hand $playerHand = null;
+
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Hand $dealerHand = null;
 
     public function getId(): ?int
     {
@@ -109,57 +111,6 @@ class Turn
         return $this;
     }
 
-
-    /**
-     * @return Card[]
-     */
-    public function getPlayerHand(): array
-    {
-        return $this->playerHand;
-    }
-
-    /**
-     * @param Card[] $deck
-     */
-    public function setPlayerHand(array $playerHand): static
-    {
-        $this->playerHand = $playerHand;
-
-        return $this;
-    }
-
-    public function addCardToPlayerHand(Card $card): static
-    {
-        $this->playerHand[] = $card;
-
-        return $this;
-    }
-
-    /**
-     * @return Card[]
-     */
-    public function getDealerHand(): array
-    {
-        return $this->dealerHand;
-    }
-
-    /**
-     * @param Card[] $deck
-     */
-    public function setDealerHand(array $dealerHand): static
-    {
-        $this->dealerHand = $dealerHand;
-
-        return $this;
-    }
-
-    public function addCardToDealerHand(Card $card): static
-    {
-        $this->dealerHand[] = $card;
-
-        return $this;
-    }
-
     public function getWager(): ?int
     {
         return $this->wager;
@@ -168,6 +119,30 @@ class Turn
     public function setWager(?int $wager): static
     {
         $this->wager = $wager;
+
+        return $this;
+    }
+
+    public function getPlayerHand(): ?Hand
+    {
+        return $this->playerHand;
+    }
+
+    public function setPlayerHand(Hand $playerHand): static
+    {
+        $this->playerHand = $playerHand;
+
+        return $this;
+    }
+
+    public function getDealerHand(): ?Hand
+    {
+        return $this->dealerHand;
+    }
+
+    public function setDealerHand(Hand $dealerHand): static
+    {
+        $this->dealerHand = $dealerHand;
 
         return $this;
     }
