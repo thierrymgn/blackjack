@@ -52,7 +52,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $lastUpdateDate = null;
 
     #[ORM\Column]
-    #[Groups(['user', 'round', 'playerRound'])]
+    #[Groups(['user', 'game', 'turn'])]
     private ?int $wallet = null;
 
     #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'user', orphanRemoval: true)]

@@ -21,6 +21,14 @@ class TurnRepository extends ServiceEntityRepository
         parent::__construct($registry, Turn::class);
     }
 
+    public function save(Turn $turn, $persist = true): void
+    {
+        if ($persist) {
+            $this->getEntityManager()->persist($turn);
+        }
+        $this->getEntityManager()->flush();
+    }
+
     //    /**
     //     * @return Turn[] Returns an array of Turn objects
     //     */

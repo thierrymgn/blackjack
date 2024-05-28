@@ -21,6 +21,14 @@ class HandRepository extends ServiceEntityRepository
         parent::__construct($registry, Hand::class);
     }
 
+    public function save(Hand $hand, $persist = true): void
+    {
+        if ($persist) {
+            $this->getEntityManager()->persist($hand);
+        }
+        $this->getEntityManager()->flush();
+    }
+
     //    /**
     //     * @return Hand[] Returns an array of Hand objects
     //     */

@@ -2,8 +2,13 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Serializer\Annotation\Groups;
+
 class Card {
+    #[Groups(['game', 'turn'])]
     private string $suit;
+
+    #[Groups(['game', 'turn'])]
     private string $value;
 
     public function __construct(string $suit, string $value) {

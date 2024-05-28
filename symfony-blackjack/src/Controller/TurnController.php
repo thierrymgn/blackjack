@@ -34,22 +34,22 @@ class TurnController extends AbstractController
             return $this->json($err->getMessage(), $err->getCode());
         }
 
-        return $this->json($turn, 201, [], ['groups' => 'game']);    
+        return $this->json($turn, 201, [], ['groups' => 'game', 'turn']);    
     }
 
     #[Route('/turn/{id}', name: 'get_turn', methods: ['GET'])]
-    public function getTurn(int $id): Response
+    public function getTurn(string $id): Response
     {
         list($turn, $err) = $this->turnService->getTurn($id, $this->getUser());
         if($err instanceof \Error) {
             return $this->json($err->getMessage(), $err->getCode());
         }
 
-        return $this->json($turn, 200, [], ['groups' => 'game']);    
+        return $this->json($turn, 200, [], ['groups' => 'game', 'turn']);    
     }
 
     #[Route('/turn/{id}/wage', name: 'wage_turn', methods: ['PATCH'])]
-    public function wageTurn(int $id, Request $request): Response
+    public function wageTurn(string $id, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
         list($turn, $err) = $this->turnService->wageTurn($id, $this->getUser(), $data);
@@ -62,23 +62,29 @@ class TurnController extends AbstractController
             return $this->json($err->getMessage(), $err->getCode());
         }
 
-
-        return $this->json($turn, 200, [], ['groups' => 'game']);    
+        return $this->json($turn, 200, [], ['groups' => 'game', 'turn']);    
     }
 
     #[Route('/turn/{id}/hit', name: 'hit_turn', methods: ['PATCH'])]
-    public function hitTurn(int $id): Response
+    public function hitTurn(string $id): Response
     {
         list($turn, $err) = $this->turnService->hitTurn($id, $this->getUser());
         if($err instanceof \Error) {
             return $this->json($err->getMessage(), $err->getCode());
         }
 
-        return $this->json($turn, 200, [], ['groups' => 'game']);    
+        if($turn->getStatus() === 'busted') {
+            list($turn, $err) = $this->turnService->distributeGains($turn);
+            if($err instanceof \Error) {
+                return $this->json($err->getMessage(), $err->getCode());
+            }    
+        }
+
+        return $this->json($turn, 200, [], ['groups' => 'game', 'turn']);    
     }
 
     #[Route('/turn/{id}/stand', name: 'stand_turn', methods: ['PATCH'])]
-    public function standTurn(int $id): Response
+    public function standTurn(string $id): Response
     {
         list($turn, $err) = $this->turnService->standTurn($id, $this->getUser());
         if($err instanceof \Error) {
@@ -95,7 +101,7 @@ class TurnController extends AbstractController
             return $this->json($err->getMessage(), $err->getCode());
         }
 
-        return $this->json($turn, 200, [], ['groups' => 'game']);    
+        return $this->json($turn, 200, [], ['groups' => 'game', 'turn']);    
     }
 
 

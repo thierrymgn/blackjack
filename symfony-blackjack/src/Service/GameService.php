@@ -44,11 +44,6 @@ class GameService
         $game = $this->generateNewGame($user);
         $this->gameRepository->save($game, true);
 
-        list($game, $err) = $this->initializeGame($game);
-        if($err instanceof \Error) {
-            return [null, $err];
-        }
-
         return [$game, null];
     }
 

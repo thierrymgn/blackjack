@@ -17,7 +17,7 @@ class GameController extends AbstractController
         $this->gameService = $gameService;
     }
 
-    #[Route('/game', name: 'get_list_of_games')]
+    #[Route('/game', name: 'get_list_of_games', methods: ['GET'])]
     public function getListOfGames(Request $request): Response
     {
         $userId = null;
@@ -45,6 +45,9 @@ class GameController extends AbstractController
         }
 
         list($game, $err) = $this->gameService->initializeGame($game);
+        if($err instanceof \Error) {
+            return $this->json($err->getMessage(), $err->getCode());
+        }
 
         return $this->json($game, 201, [], ['groups' => 'game']);
     }

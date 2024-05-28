@@ -2,33 +2,14 @@
 
 namespace App\Service;
 
-use App\Entity\Card;
-use App\Entity\Game;
 use App\Entity\Hand;
-use App\Entity\Turn;
-use App\Entity\User;
-use App\Form\Turn\WageTurnFormType;
-use App\Repository\HandRepository;
-use App\Repository\TurnRepository;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Form\FormFactoryInterface;
 
 class HandService
 {
-
-    private HandRepository $handRepository;
-    private FormFactoryInterface $formFactory;
-    private EntityManagerInterface $em;
-
-    public function __construct(HandRepository $handRepository, FormFactoryInterface $formFactory, EntityManagerInterface $em)
-    {
-        $this->handRepository = $handRepository;
-        $this->formFactory = $formFactory;
-        $this->em = $em;
-    }
-
     public function calculateScore(Hand $hand): array
     {
+
+        $handAfterCalculating = new Hand();
         $score = 0;
         $aces = 0;
         $faces = 0;
@@ -52,16 +33,16 @@ class HandService
             }
         }
 
-        $hand->setIsBusted($score > 21);
-        $hand->setScore($score);
+        $handAfterCalculating->setIsBusted($score > 21);
+        $handAfterCalculating->setScore($score);
 
         if(count($hand->getCards()) === $faces + $aces && count($hand->getCards()) === 2 && $score === 21){
-            $hand->setIsBlackjack(true);
+            $handAfterCalculating->setIsBlackjack(true);
         }
 
-        $this->handRepository->save($hand, true);
+        $handAfterCalculating->setCards($hand->getCards());
 
-        return [$hand, null];
+        return [$handAfterCalculating, null];
     }
 
 }

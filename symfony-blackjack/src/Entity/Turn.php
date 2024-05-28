@@ -3,44 +3,60 @@
 namespace App\Entity;
 
 use App\Repository\TurnRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: TurnRepository::class)]
 class Turn
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    #[Groups(['game', 'turn'])]
+    private ?string $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'turns')]
+    #[Groups(['turn'])]
     private ?Game $game = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['game', 'turn'])]
     private ?string $status = null;
 
-    #[ORM\Column(type: Types::JSON)]
+    #[ORM\Column(type: Types::OBJECT)]
+    #[Groups(['turn', 'game'])]
     private array $deck = [];
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['game', 'turn'])]
     private ?\DateTimeInterface $creationDate = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['game', 'turn'])]
     private ?\DateTimeInterface $lastUpdateDate = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['turn', 'game'])]
     private ?int $wager = null;
 
-    #[ORM\OneToOne(inversedBy: 'turn', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Hand $playerHand = null;
+    #[ORM\Column(type: Types::OBJECT)]
+    #[Groups(['game', 'turn'])]
+    private ?Hand $playerHand;
 
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Hand $dealerHand = null;
+    #[ORM\Column(type: Types::OBJECT)]
+    #[Groups(['game', 'turn'])]
+    private ?Hand $dealerHand;
 
-    public function getId(): ?int
+    public function __construct()
+    {
+        $this->id = Uuid::v4()->toRfc4122();
+        $this->creationDate = new \DateTime();
+        $this->lastUpdateDate = new \DateTime();
+    }
+
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -128,7 +144,7 @@ class Turn
         return $this->playerHand;
     }
 
-    public function setPlayerHand(Hand $playerHand): static
+    public function setPlayerHand(?Hand $playerHand): static
     {
         $this->playerHand = $playerHand;
 
@@ -140,7 +156,7 @@ class Turn
         return $this->dealerHand;
     }
 
-    public function setDealerHand(Hand $dealerHand): static
+    public function setDealerHand(?Hand $dealerHand): static
     {
         $this->dealerHand = $dealerHand;
 

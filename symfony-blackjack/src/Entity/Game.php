@@ -7,37 +7,45 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: GameRepository::class)]
 class Game
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    #[Groups(['user', 'game', 'turn'])]
+    private string $id;
 
     #[ORM\ManyToOne(inversedBy: 'games')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['user', 'game', 'turn'])]
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups([ 'game', 'turn'])]
     private ?string $status = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups([ 'game', 'turn'])]
     private ?\DateTimeInterface $dateCreation = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups([ 'game', 'turn'])]
     private ?\DateTimeInterface $lastUpdateDate = null;
 
     #[ORM\OneToMany(targetEntity: Turn::class, mappedBy: 'game')]
+    #[Groups([ 'game'])]
     private Collection $turns;
 
     public function __construct()
     {
+        $this->id = Uuid::v4()->toRfc4122();
         $this->turns = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId(): ?string
     {
         return $this->id;
     }

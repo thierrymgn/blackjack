@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Card;
 use App\Entity\Game;
+use App\Entity\Hand;
 use App\Entity\Turn;
 use App\Entity\User;
 use App\Form\Turn\WageTurnFormType;
@@ -47,7 +48,7 @@ class TurnService
 
     public function checkIsAbleToCreateNewTurn(Game $game): array
     {
-        if($game->getStatus() !== 'playing') {
+        if(!in_array($game->getStatus(), ['playing', 'created'])) {
             return [null, new \Error('The game has not started', 409)];
         }
 
@@ -126,13 +127,13 @@ class TurnService
             return [null, $err];
         }
 
-        $user->setWallet($user->getWallet() - $turn->getWage());
+        $user->setWallet($user->getWallet() - $turn->getWager());
         $user->setLastUpdateDate(new \DateTime());
         $this->em->getRepository(User::class)->save($user);
 
         $turn->setLastUpdateDate(new \DateTime());
         $turn->setStatus('initializing');
-        $this->em->getRepository(Turn::class)->save($user);
+        $this->em->getRepository(Turn::class)->save($turn);
 
         return [$turn, null];
     }
@@ -148,49 +149,64 @@ class TurnService
             return [null, $errors];
         }
 
+        if($turn->getWager() > $turn->getGame()->getUser()->getWallet()) {
+            $errors = ['wager' => 'You do not have enough money'];
+            return [null, $errors];
+        }
+
         return [$turn, null];
     }
 
     public function initializeTurn(Turn $turn): array
     {
-        list($turn, $err) = $this->playerDrawTopCard($turn);
-        list($turn, $err) = $this->playerDrawTopCard($turn);
-        
-        list($turn, $err) = $this->dealerDrawTopCard($turn);
-
-        $turn->setStatus('playing');
-        $turn->setLastUpdateDate(new \DateTime());
-        $this->turnRepository->save($turn);
-
-        return [$turn, null];
-    }
-
-    public function playerDrawTopCard(Turn $turn): array
-    {
-        if(!in_array($turn->getStatus(), ['playing', 'initializing'])) {
-            return [null, new \Error('You can not draw a card', 409)];
+        $turn->setPlayerHand(new Hand());
+        list($card, $err) = $this->drawTopCard($turn);
+        if($err instanceof \Error) {
+            return [null, $err];
         }
 
-        if(count($turn->getDeck()) === 0) {
-            $deck = self::shuffleDeck(self::generateDeck());
-            $turn->setDeck($deck);
-        }
-
-        $deck = $turn->getDeck();
-        $card = array_shift($deck);
-        $turn->setDeck($deck);
         $turn->getPlayerHand()->addCard($card);
 
-        $this->handService->calculateScore($turn->getPlayerHand());
 
+        list($card, $err) = $this->drawTopCard($turn);
+        if($err instanceof \Error) {
+            return [null, $err];
+        }
+
+        $turn->getPlayerHand()->addCard($card);
+        
+        list($hand, $err) = $this->handService->calculateScore($turn->getPlayerHand());
+        if($err instanceof \Error) {
+            return [null, $err];
+        }
+        
+        $turn->setPlayerHand($hand);
+        
+        $turn->setDealerHand(new Hand());
+        list($card, $err) = $this->drawTopCard($turn);
+        if($err instanceof \Error) {
+            return [null, $err];
+        }
+
+        $turn->getDealerHand()->addCard($card);
+
+        list($hand, $err) = $this->handService->calculateScore($turn->getDealerHand());
+        if($err instanceof \Error) {
+            return [null, $err];
+        }
+        
+        $turn->setDealerHand($hand);
+
+        $turn->setLastUpdateDate(new \DateTime());
+        $turn->setStatus('playing');
         $this->turnRepository->save($turn);
 
         return [$turn, null];
     }
 
-    public function dealerDrawTopCard(Turn $turn): array
+    public function drawTopCard(Turn $turn): array
     {
-        if(!in_array($turn->getStatus(), ['dealer', 'initializing'])) {
+        if(!in_array($turn->getStatus(), ['playing', 'initializing', 'dealer'])) {
             return [null, new \Error('You can not draw a card', 409)];
         }
 
@@ -202,13 +218,8 @@ class TurnService
         $deck = $turn->getDeck();
         $card = array_shift($deck);
         $turn->setDeck($deck);
-        $turn->getDealerHand()->addCard($card);
 
-        $this->handService->calculateScore($turn->getDealerHand());
-
-        $this->turnRepository->save($turn);
-
-        return [$turn, null];
+        return [$card, null];
     }
 
     public function hitTurn(string $id, User $user): array
@@ -218,16 +229,26 @@ class TurnService
             return [null, $err];
         }
 
-        list($turn, $err) = $this->playerDrawTopCard($turn);
+        list($card, $err) = $this->drawTopCard($turn);
         if($err instanceof \Error) {
             return [null, $err];
         }
 
+        $turn->getPlayerHand()->addCard($card);
+        
+        list($hand, $err) = $this->handService->calculateScore($turn->getPlayerHand());
+        if($err instanceof \Error) {
+            return [null, $err];
+        }
+        
+        $turn->setPlayerHand($hand);
+
         if($turn->getPlayerHand()->getIsBusted()) {
             $turn->setStatus('busted');
-            $this->turnRepository->save($turn);
         }
 
+        $turn->setLastUpdateDate(new \DateTime());
+        $this->turnRepository->save($turn);
         return [$turn, null];
     }
 
@@ -236,6 +257,10 @@ class TurnService
         list($turn, $err) = $this->getTurn($id, $user);
         if($err instanceof \Error) {
             return [null, $err];
+        }
+
+        if($turn->getStatus() !== 'playing') {
+            return [null, new \Error('You can not stand', 409)];
         }
 
         $turn->setStatus('dealer');
@@ -251,13 +276,23 @@ class TurnService
         }
 
         while($turn->getDealerHand()->getScore() < 17) {
-            list($turn, $err) = $this->dealerDrawTopCard($turn);
+            list($card, $err) = $this->drawTopCard($turn);
             if($err instanceof \Error) {
                 return [null, $err];
             }
+
+            $turn->getDealerHand()->addCard($card);
+
+            list($hand, $err) = $this->handService->calculateScore($turn->getDealerHand());
+            if($err instanceof \Error) {
+                return [null, $err];
+            }
+            
+            $turn->setDealerHand($hand);
         }
 
         $turn->setStatus('distributeGains');
+        $this->turnRepository->save($turn, true);
 
         return [$turn, null];
     }
