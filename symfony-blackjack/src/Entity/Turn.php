@@ -26,7 +26,6 @@ class Turn
     private ?string $status = null;
 
     #[ORM\Column(type: Types::OBJECT)]
-    #[Groups(['turn', 'game'])]
     private array $deck = [];
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]

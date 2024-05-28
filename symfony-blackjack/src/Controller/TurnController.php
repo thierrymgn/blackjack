@@ -34,7 +34,7 @@ class TurnController extends AbstractController
             return $this->json($err->getMessage(), $err->getCode());
         }
 
-        return $this->json($turn, 201, [], ['groups' => 'game', 'turn']);    
+        return $this->json($turn, 201, [], ['groups' => 'turn']);    
     }
 
     #[Route('/turn/{id}', name: 'get_turn', methods: ['GET'])]
@@ -45,7 +45,7 @@ class TurnController extends AbstractController
             return $this->json($err->getMessage(), $err->getCode());
         }
 
-        return $this->json($turn, 200, [], ['groups' => 'game', 'turn']);    
+        return $this->json($turn, 200, [], ['groups' => 'turn']);    
     }
 
     #[Route('/turn/{id}/wage', name: 'wage_turn', methods: ['PATCH'])]
@@ -62,7 +62,7 @@ class TurnController extends AbstractController
             return $this->json($err->getMessage(), $err->getCode());
         }
 
-        return $this->json($turn, 200, [], ['groups' => 'game', 'turn']);    
+        return $this->json($turn, 200, [], ['groups' => 'turn']);    
     }
 
     #[Route('/turn/{id}/hit', name: 'hit_turn', methods: ['PATCH'])]
@@ -80,7 +80,7 @@ class TurnController extends AbstractController
             }    
         }
 
-        return $this->json($turn, 200, [], ['groups' => 'game', 'turn']);    
+        return $this->json($turn, 200, [], ['groups' => 'turn']);    
     }
 
     #[Route('/turn/{id}/stand', name: 'stand_turn', methods: ['PATCH'])]
@@ -101,7 +101,7 @@ class TurnController extends AbstractController
             return $this->json($err->getMessage(), $err->getCode());
         }
 
-        return $this->json($turn, 200, [], ['groups' => 'game', 'turn']);    
+        return $this->json($turn, 200, [], ['groups' => 'turn']);    
     }
 
 

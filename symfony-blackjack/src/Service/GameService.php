@@ -73,7 +73,7 @@ class GameService
         return [$game, null];
     }
 
-    public function getGame(int $id, User $user): array
+    public function getGame(string $id, User $user): array
     {
         $game = $this->gameRepository->find($id);
         if($game === null) {
