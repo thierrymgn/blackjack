@@ -206,7 +206,7 @@ class TurnService
 
     public function drawTopCard(Turn $turn): array
     {
-        if(!in_array($turn->getStatus(), ['playing', 'initializing', 'dealer'])) {
+        if(!in_array($turn->getStatus(), ['playing'])) {
             return [null, new \Error('You can not draw a card', 409)];
         }
 
