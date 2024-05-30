@@ -106,7 +106,7 @@
                         <td>{game.status}</td>
                         <td>
                             {#if game.status === 'playing'}
-                                <a href="/user/games/{game.id}" class="btn btn-sm variant-filled-primary">Resume</a>
+                                <a href="/user/games/{i+1}" class="btn btn-sm variant-filled-primary">Resume</a>
                             {/if}
                             <button class="btn btn-sm variant-filled-error" on:click={() => deleteGame(game.id)} disabled={actionOnGame === game.id}>Delete</button>
                         </td>

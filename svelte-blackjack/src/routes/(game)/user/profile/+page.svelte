@@ -1,8 +1,7 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
 
-
-    let user = null;
+    const user = null;
 
     async function getUser() {
         return fetch('http://127.0.0.1:8888/user/profile', {
@@ -14,11 +13,6 @@
                 if(response.status === 401) {
                     throw new Error('Unauthorized');
                 }
-                return response.json()
-            })
-            .then(data => {
-                user = data;
-                console.log(user);
             })
             .catch(error => {
                 if(error.message === 'Unauthorized') {

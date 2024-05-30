@@ -18,11 +18,11 @@
 </div>
 
 <style>
-    .spade, .club {
+    .spades, .clubs {
         color: black;
     }
 
-    .heart, .diamond {
+    .hearts, .diamonds {
         color: red;
     }
 

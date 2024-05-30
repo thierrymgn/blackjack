@@ -20,7 +20,14 @@
                 if(response.status === 401) {
                     throw new Error('Unauthorized');
                 }
-                return response.json()
+
+                if(response.status === 404) {
+                    throw new Error('Not found');
+                }
+
+                if(response.status === 200){
+                    return response.json()
+                }
             })
             .then(data => {
                 game = data;
@@ -31,6 +38,8 @@
                     localStorage.removeItem('token');
                     goto('/');
                 }
+
+                return null;
             });
     }
 
@@ -60,11 +69,13 @@
 
     async function wageTurn(e: Event) {
         waging = true;
+        displayWageError = false;
+
         return fetch('http://127.0.0.1:8888/turn/'+currentTurn.id+'/wage', {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('token') || '',
+                'Bearer': 'Authorization ' + localStorage.getItem('token') || '',
             },
             body: JSON.stringify({
 				wager: (document.getElementById('wager') as HTMLInputElement).value
@@ -80,7 +91,10 @@
                     throw new Error('Bad request');
                 }
 
-                return response.json()
+                if(response.status === 200) {
+                    return response.json()
+                }
+
             })
             .then(data => {
                 console.log(data);
@@ -161,6 +175,10 @@
 
 {:then}
 
+{#if game === null}
+    <p>Game not found</p>
+{:else}
+
 {#if currentTurn.status === 'waging'}
 <form class="flex flex-col w-2/3 p-6 " on:submit|preventDefault={(e) => wageTurn(e)}>
 	
@@ -233,5 +251,6 @@
 
 {/if}
 
+{/if}
 
 {/await}
