@@ -1,42 +1,62 @@
 <script lang="ts">
-    import { enhance } from "$app/forms";
-    import type { SubmitFunction } from "@sveltejs/kit";
+  import { goto } from "$app/navigation";
 
     let displayAuthError: boolean = false;
+	let loading: boolean = false;
 
-    const postLogin: SubmitFunction = (input) => {
-        displayAuthError = false;
+	async function submitLogin(e: Event) {
+		loading = true;
 
-        return async ({result, update}) => {
-            await update();
+		await fetch('http://127.0.0.1:8888/login_check', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				username: (document.getElementById('username') as HTMLInputElement).value,
+				password: (document.getElementById('password') as HTMLInputElement).value
+			})
+		})
+		.then(response => response.json())
+		.then(data => {
+			if(data.code === 401) {
+				displayAuthError = true;
+				return;
+			}
 
-            if(result.data !== undefined && result.data.error !== undefined && result.data.error === true) {
-                displayAuthError = true;
-            }else{
+			localStorage.setItem('token', data.token);
+			goto('/user/profile');
+		})
 
-            }
-        }
-
-    };
+	}
+    
 </script>
 
-<form method="POST" action="/?login" use:enhance={postLogin}  class="flex flex-col w-1/3 bg-ring p-6 rounded">
-    <h1 class="text-3xl text-primary-foreground text-center">Login</h1>
+<div class="flex flex-col justify-center items-center w-full rounded variant-glass-surface">
 
-    <div class="flex justify-around items-center my-6">
-        <label class="text-primary-foreground justify-items-start w-1/2" for="username">Username:</label>
-        <input class="border justify-items-end w-1/2 py-1 rounded" type="text" id="username" name="username" required/>    
-    </div>
-    <div class="flex justify-around items-center my-6">
-        <label class="text-primary-foreground justify-items-start w-1/2" for="password">Password:</label>
-        <input class="border justify-items-end w-1/2 py-1 rounded" type="password" id="password" name="password" required/>
-    </div>
+	<h1 class="h1 py-3">Login</h1>
 
-    {#if displayAuthError}
-        <p class="text-red-500 text-center">Invalid username or password</p>
-    {/if}
-
-    <div class="flex justify-around items-center my-6">
-        <button type="submit" class="px-8 py-2 text-xl bg-accent rounded">Login</button>
-    </div>
-</form>
+	<div>
+		<p>Not already registered ? <a href="/signup" class="anchor">Create an account !</a></p>
+	</div>
+	
+	<form class="flex flex-col w-2/3 p-6 " on:submit|preventDefault={(e) => submitLogin(e)}>
+	
+		<div class="flex justify-around items-center my-6">
+			<label class="text-primary-foreground justify-items-start w-1/2" for="username">Username:</label>
+			<input class="border justify-items-end w-1/2 py-1 rounded text-black" type="text" id="username" name="username" required/>    
+		</div>
+		<div class="flex justify-around items-center my-6">
+			<label class="text-primary-foreground justify-items-start w-1/2" for="password">Password:</label>
+			<input class="border justify-items-end w-1/2 py-1 rounded text-black" type="password" id="password" name="password" required/>
+		</div>
+	
+		{#if displayAuthError}
+			<p class="text-red-500 text-center">Invalid username or password</p>
+		{/if}
+	
+		<div class="flex justify-around items-center my-6">
+			<button type="submit" class="btn btn-lg variant-filled-primary rounded" disabled={loading}>Login</button>
+		</div>
+	</form>
+</div>

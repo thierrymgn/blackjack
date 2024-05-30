@@ -1,23 +1,23 @@
-<script>import "../../app.pcss";</script>
+<script lang="ts">
+	import '../../app.postcss';
+	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
+</script>
 
-<nav class="flex fixed items-center justify-center flex-wrap w-full p-6 bg-gray-800">
-    <div class="flex items-center justify-between flex-wrap w-10/12">
-        <div class="flex items-center justify-start flex-shrink-0 w-1/3">
-            <a class="text-white" href="/play">Accueil</a>
-        </div>
-        <div class="flex items-center justify-end flex-shrink-0 w-1/3">
-            <a class="text-white mx-3" href="/play/my-games">Recent games</a>
-            <a class="text-white mx-3" href="/play/profile">My profile</a>
-            <a class="text-white mx-3 bg-destructive p-2 rounded" href="/play/logout">Logout</a>
-        </div>
-
-    </div>
-</nav>
-
-<main class="bg-primary">
-    <div class="min-h-screen flex items-center justify-center">
-        <div class="flex items-center justify-center w-full">
-            <slot></slot>
-        </div>    
-    </div>
-</main>
+<AppShell>
+	<svelte:fragment slot="header">
+		<!-- App Bar -->
+		<AppBar>
+			<svelte:fragment slot="lead">
+				<strong class="text-xl uppercase">Blackjack</strong>
+			</svelte:fragment>
+			<svelte:fragment slot="trail">
+				<a href="/logout" class="variant-filled-error p-2 border border-error-500 rounded">Logout</a>
+			</svelte:fragment>
+		</AppBar>
+	</svelte:fragment>
+	<main class="container h-full mx-auto flex justify-center items-center">
+		<div class="space-y-10 text-center flex flex-col items-center w-full">
+			<slot />
+		</div>
+	</main>	
+</AppShell>

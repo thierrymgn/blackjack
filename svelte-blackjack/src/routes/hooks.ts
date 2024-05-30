@@ -3,17 +3,17 @@ import { redirect } from '@sveltejs/kit';
 
 export const handle = (async ({ event, resolve }) => {
 
-    const token: string | undefined = event.cookies.get('token');
+    const token: string | null = localStorage.getItem('token');
     
-    if (token !== undefined) {
-        if (event.url.pathname.startsWith('/play')) {
+    if (token !== null) {
+        if (event.url.pathname.startsWith('/user')) {
             return await resolve(event);
         }
 
-        return redirect(302, '/play');
+        return redirect(302, '/user');
     }
 
-    if (event.url.pathname.startsWith('/play')) {
+    if (event.url.pathname.startsWith('/user')) {
         return redirect(302, '/');
     }
 
