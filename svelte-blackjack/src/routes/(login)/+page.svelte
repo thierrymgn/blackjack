@@ -21,6 +21,7 @@
 		.then(data => {
 			if(data.code === 401) {
 				displayAuthError = true;
+				loading = false;
 				return;
 			}
 

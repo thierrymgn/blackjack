@@ -7,10 +7,11 @@
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Bearer': 'Bearer ' + localStorage.getItem('token') || ''
+                'Authorization': 'Bearer ' + localStorage.getItem('token') || ''
             }}).then(response => response.json())
             .then(data => {
                 user = data;
+                console.log(user);
             });
     }
 </script>
@@ -21,6 +22,22 @@
     <p>Loading...</p>
 
 {:then}
-<h1>Welcome {user.username} !</h1>
+<h1 class="h1">Welcome {user.username} !</h1>
+<div class="flex flex-col w-2/3 p-6 ">
+	
+    <div class="flex justify-around items-center my-6">
+        <label class="text-primary-foreground justify-items-start w-1/2" for="username">Username:</label>
+        <input class="border justify-items-end w-1/2 py-1 rounded text-black" type="text" id="username" name="username" bind:value={user.username} disabled/>    
+    </div>
+    <div class="flex justify-around items-center my-6">
+        <label class="text-primary-foreground justify-items-start w-1/2" for="email">Email:</label>
+        <input class="border justify-items-end w-1/2 py-1 rounded text-black" type="email" id="email" name="email" bind:value={user.email} disabled/>
+    </div>
+    
+    <div class="flex justify-around items-center my-6">
+        <label class="text-primary-foreground justify-items-start w-1/2" for="wallet">Wallet:</label>
+        <input class="border justify-items-end w-1/2 py-1 rounded text-black" type="number" id="wallet" name="wallet" bind:value={user.wallet} disabled/>
+    </div>
 
+</div>
 {/await}

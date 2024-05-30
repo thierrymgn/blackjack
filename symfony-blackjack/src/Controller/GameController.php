@@ -53,7 +53,7 @@ class GameController extends AbstractController
     }
 
     #[Route('/game/{id}', name: 'get_game', methods: ['GET'])]
-    public function getGame(int $id): Response
+    public function getGame(string $id): Response
     {
         list($game, $err) = $this->gameService->getGame($id, $this->getUser());
         if($err instanceof \Error) {
@@ -64,7 +64,7 @@ class GameController extends AbstractController
     }
 
     #[Route('/game/{id}', name: 'delete_game', methods: ['DELETE'])]
-    public function deleteGame(int $id): Response
+    public function deleteGame(string $id): Response
     {
         list($_, $err) = $this->gameService->deleteGame($id, $this->getUser());
         if($err instanceof \Error) {

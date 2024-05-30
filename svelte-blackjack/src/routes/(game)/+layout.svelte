@@ -11,6 +11,8 @@
 				<strong class="text-xl uppercase">Blackjack</strong>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
+				<a href="/user/profile" class="">My profile</a>
+				<a href="/user/games" class="">My games</a>
 				<a href="/logout" class="variant-filled-error p-2 border border-error-500 rounded">Logout</a>
 			</svelte:fragment>
 		</AppBar>
