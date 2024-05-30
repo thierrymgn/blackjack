@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
+
 
     let user = null;
 
@@ -8,10 +10,21 @@
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + localStorage.getItem('token') || ''
-            }}).then(response => response.json())
+            }}).then(response => {
+                if(response.status === 401) {
+                    throw new Error('Unauthorized');
+                }
+                return response.json()
+            })
             .then(data => {
                 user = data;
                 console.log(user);
+            })
+            .catch(error => {
+                if(error.message === 'Unauthorized') {
+                    localStorage.removeItem('token');
+                    goto('/');
+                }
             });
     }
 </script>

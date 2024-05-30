@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
     import { page } from "$app/stores";
   import PlayingCard from "$lib/PlayingCard.svelte";
 
@@ -15,10 +16,21 @@
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + localStorage.getItem('token') || ''
-            }}).then(response => response.json())
+            }}).then(response => {
+                if(response.status === 401) {
+                    throw new Error('Unauthorized');
+                }
+                return response.json()
+            })
             .then(data => {
                 game = data;
                 currentTurn = game.turns[game.turns.length - 1];
+            })
+            .catch(error => {
+                if(error.message === 'Unauthorized') {
+                    localStorage.removeItem('token');
+                    goto('/');
+                }
             });
     }
 
@@ -28,10 +40,21 @@
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + localStorage.getItem('token') || ''
-            }}).then(response => response.json())
+            }}).then(response => {
+                if(response.status === 401) {
+                    throw new Error('Unauthorized');
+                }
+                return response.json()
+            })
             .then(data => {
                 console.log(data);
                 currentTurn = data;
+            })
+            .catch(error => {
+                if(error.message === 'Unauthorized') {
+                    localStorage.removeItem('token');
+                    goto('/');
+                }
             });
     }
 
@@ -46,12 +69,23 @@
             body: JSON.stringify({
 				wager: (document.getElementById('wager') as HTMLInputElement).value
 			})
-        }).then(response => response.json())
+        }).then(response => {
+                if(response.status === 401) {
+                    throw new Error('Unauthorized');
+                }
+                return response.json()
+            })
             .then(data => {
                 console.log(data);
                 currentTurn = data;
                 waging = false;
 
+            })
+            .catch(error => {
+                if(error.message === 'Unauthorized') {
+                    localStorage.removeItem('token');
+                    goto('/');
+                }
             });
     }
 
@@ -62,11 +96,22 @@
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + localStorage.getItem('token') || '',
             }
-        }).then(response => response.json())
+        }).then(response => {
+                if(response.status === 401) {
+                    throw new Error('Unauthorized');
+                }
+                return response.json()
+            })
             .then(data => {
                 currentTurn = data;
                 if(currentTurn.status !== 'playing'){
                     gains = currentTurn.wager;
+                }
+            })
+            .catch(error => {
+                if(error.message === 'Unauthorized') {
+                    localStorage.removeItem('token');
+                    goto('/');
                 }
             });
     }
@@ -78,7 +123,12 @@
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + localStorage.getItem('token') || '',
             }
-        }).then(response => response.json())
+        }).then(response => {
+                if(response.status === 401) {
+                    throw new Error('Unauthorized');
+                }
+                return response.json()
+            })
             .then(data => {
                 currentTurn = data;
                 gains = currentTurn.wager;
@@ -86,6 +136,12 @@
                     gains = currentTurn.wager * 2;
                 }
                 
+            })
+            .catch(error => {
+                if(error.message === 'Unauthorized') {
+                    localStorage.removeItem('token');
+                    goto('/');
+                }
             });
     }
 

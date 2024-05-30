@@ -10,9 +10,20 @@
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + localStorage.getItem('token') || ''
-            }}).then(response => response.json())
+            }}).then(response => {
+                if(response.status === 401) {
+                    throw new Error('Unauthorized');
+                }
+                return response.json()
+            })
             .then(data => {
                 games = data;
+            })
+            .catch(error => {
+                if(error.message === 'Unauthorized') {
+                    localStorage.removeItem('token');
+                    goto('/');
+                }
             });
     }
 
@@ -27,8 +38,17 @@
                 if(response.status === 204) {
                     games = games.filter(game => game.id !== id);
                 }
+                if(response.status === 401) {
+                    throw new Error('Unauthorized');
+                }
             
-            }) 
+            })
+            .catch(error => {
+                if(error.message === 'Unauthorized') {
+                    localStorage.removeItem('token');
+                    goto('/');
+                }
+            });
     }
 
     async function createGame() {
@@ -41,8 +61,17 @@
                 if(response.status === 201) {
                     return response.json();
                 }
+                if(response.status === 401) {
+                    throw new Error('Unauthorized');
+                }
             }).then(data => {
                 goto('/user/games/'+data.id);
+            })
+            .catch(error => {
+                if(error.message === 'Unauthorized') {
+                    localStorage.removeItem('token');
+                    goto('/');
+                }
             });
     }
 
