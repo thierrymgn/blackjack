@@ -87,7 +87,7 @@ class GameService
         return [$game, null];
     }
 
-    public function deleteGame(int $id, User $user): array
+    public function deleteGame(string $id, User $user): array
     {
         list($game, $err) = $this->getGame($id, $user);
         if($err instanceof \Error) {
