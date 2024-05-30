@@ -73,6 +73,13 @@
                 if(response.status === 401) {
                     throw new Error('Unauthorized');
                 }
+
+                if(response.status === 400) {
+                    displayWageError = true;
+                    waging = false;
+                    throw new Error('Bad request');
+                }
+
                 return response.json()
             })
             .then(data => {
@@ -163,7 +170,7 @@
     </div>
 
     {#if displayWageError}
-        <p class="text-red-500 text-center">pouet</p>
+        <p class="text-red-500 text-center">You need to wage at least 10 coins</p>
     {/if}
 
     <div class="flex justify-around items-center my-6">
