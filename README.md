@@ -2,16 +2,28 @@
 
 ## Table des matières
 
-- [Blackjack - Une application en Symfony et en Sveltekit pour s'entrainer à la QA](#blackjack---une-application-en-symfony-et-en-sveltekit-pour-sentrainer-à-la-qa)
-  - [Table des matières](#table-des-matières)
-  - [A propos](#a-propos)
-  - [Comment installer](#comment-installer)
-      - [Installer la partie symfony](#installer-la-partie-symfony)
-      - [Lancer le serveur de développement symfony](#lancer-le-serveur-de-développement-symfony)
-      - [Installer la partie Sveltekit](#installer-la-partie-sveltekit)
-      - [Lancer le serveur de développement sveltekit](#lancer-le-serveur-de-développement-sveltekit)
-  - [Objectif](#objectif)
-
+<!--toc:start-->
+ - [A propos](#a-propos)
+ - [Comment installer](#comment-installer)
+     - [Installer la partie symfony](#installer-la-partie-symfony)
+     - [Lancer le serveur de développement symfony](#lancer-le-serveur-de-développement-symfony)
+     - [Installer la partie Sveltekit](#installer-la-partie-sveltekit)
+     - [Lancer le serveur de développement sveltekit](#lancer-le-serveur-de-développement-sveltekit)
+ - [Objectif](#objectif)
+ - [Notation](#notation)
+   - [Document récapitulatif /4](#document-récapitulatif-4)
+     - [De l'équipe front /2](#de-léquipe-front-2)
+     - [De l'équipe back /2](#de-léquipe-back-2)
+   - [Bugs trouvés /6](#bugs-trouvés-6)
+     - [Par l'équipe front /3](#par-léquipe-front-3)
+     - [Par l'équipe back /3](#par-léquipe-back-3)
+   - [Bugs corrigés /6](#bugs-corrigés-6)
+     - [Par l'équipe front /3](#par-léquipe-front-3)
+     - [Par l'équipe back /3](#par-léquipe-back-3)
+   - [Tests écrits /24](#tests-écrits-24)
+     - [Par l'équipe front /12](#par-léquipe-front-12)
+     - [Par l'équipe back /12](#par-léquipe-back-12)
+<!--toc:end-->
 
 ## A propos
 
@@ -82,3 +94,30 @@ Votre objectif est de faire une courte analyse de l'application et des besoins m
 Si des bugs sont rencontrés, il vous sera demander d'écrire des tickets de bugs afin que d'autres développeurs puissent les corriger. Enfin, si vous disposez de compétences supplémentaires pour mettre en place des fixtures ou de la CI/CD, cela sera un plus non négligeable.
 
 Votre rendu sera constitué d'un rapport contenant votre analyse et la justification de votre plan de test, des tickets de bugs rédigés ainsi que d'une pull request de votre repository vers le projet d'origine. Si vos tests ont été réalisés avec un outil externe ou sont manuels, veuillez également les joindre à votre rendu
+
+## Notation
+
+### Document récapitulatif /4
+
+#### De l'équipe front /2
+
+#### De l'équipe back /2
+
+### Bugs trouvés /6
+
+#### Par l'équipe front /3
+
+#### Par l'équipe back /3
+
+### Bugs corrigés /6
+
+#### Par l'équipe front /3
+
+#### Par l'équipe back /3
+
+### Tests écrits /24
+
+#### Par l'équipe front /12
+
+#### Par l'équipe back /12
+
