@@ -30,6 +30,7 @@ describe('Issue #8: user is null in (game)/user/profile/+page.svelte', () => {
 		// Mock successful API response with user data
 		global.fetch = vi.fn().mockResolvedValueOnce({
 			status: 200,
+			ok: true,
 			json: () => Promise.resolve({
 				id: 1,
 				username: 'testuser',
@@ -60,6 +61,7 @@ describe('Issue #8: user is null in (game)/user/profile/+page.svelte', () => {
 		// Mock API response
 		global.fetch = vi.fn().mockResolvedValueOnce({
 			status: 200,
+			ok: true,
 			json: () => Promise.resolve({
 				id: 1,
 				username: 'john_doe',
@@ -93,6 +95,7 @@ describe('Issue #8: user is null in (game)/user/profile/+page.svelte', () => {
 		// Mock API response
 		global.fetch = vi.fn().mockResolvedValueOnce({
 			status: 200,
+			ok: true,
 			json: () => Promise.resolve({
 				id: 1,
 				username: 'testuser',
@@ -122,6 +125,7 @@ describe('Issue #8: user is null in (game)/user/profile/+page.svelte', () => {
 		// Mock successful API response
 		global.fetch = vi.fn().mockResolvedValueOnce({
 			status: 200,
+			ok: true,
 			json: () => Promise.resolve({
 				id: 1,
 				username: 'testuser',
@@ -150,6 +154,7 @@ describe('Issue #8: user is null in (game)/user/profile/+page.svelte', () => {
 		// Mock successful user data response
 		global.fetch = vi.fn().mockResolvedValueOnce({
 			status: 200,
+			ok: true,
 			json: () => Promise.resolve({
 				id: 1,
 				username: 'validuser',
